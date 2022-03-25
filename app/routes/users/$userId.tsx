@@ -1,9 +1,10 @@
 import * as React from "react";
+import * as cheerio from "cheerio";
 import type { LoaderFunction, ActionFunction } from "remix";
 import { redirect } from "remix";
 import { json, useLoaderData, useCatch, Form, useActionData } from "remix";
 import invariant from "tiny-invariant";
-import { getWatchlistItems } from "~/models/item.server";
+import { getWatchlistItems, createItem } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
 
 type LoaderData = {
@@ -21,7 +22,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   const userId = await requireUserId(request);
   invariant(params.userId, "userId not found");
 
-  const items = await getWatchlistItems({ userId });
+  const items = await getWatchlistItems({ userId: params.userId as string });
   return json<LoaderData>({ items });
 };
 
@@ -42,14 +43,33 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
 
   const imdbDocument = await (await fetch(url)).text();
+  const $ = cheerio.load(imdbDocument);
 
-  console.log("IMDB: ", imdbDocument);
+  const rawTitle = $("meta[property='twitter:title']").attr("content");
+  const title = rawTitle?.substring(0, rawTitle.length - 7);
+  const description = $("meta[property='twitter:description']").attr("content");
+  const image = $("meta[property='twitter:image']").attr("content");
 
-  return json<ActionData>({ data: { imdbDocument } });
+  if (
+    typeof title !== "string" ||
+    typeof description !== "string" ||
+    typeof image !== "string"
+  ) {
+    return json<ActionData>(
+      { errors: { url: "Failed to scrape data from that URL." } },
+      { status: 400 }
+    );
+  }
 
-  //const note = await createItem({ title, body, userId });
+  await createItem({
+    title,
+    description,
+    url,
+    image,
+    userId: params.userId as string,
+  });
 
-  return redirect(`/users`);
+  return redirect(`/users/${params.userId}`);
 };
 
 export default function UserDetailsPage() {
@@ -91,7 +111,24 @@ export default function UserDetailsPage() {
           Save
         </button>
       </Form>
-      <pre className="mt-4">{JSON.stringify(actionData, null, 3)}</pre>
+      {data.items.length === 0 ? (
+        <p className="mt-8">
+          There is nothing in your watchlist. Add something using the form
+          above.
+        </p>
+      ) : (
+        data.items.map((item) => (
+          <div className="mt-8 flex">
+            <div className="mr-4 flex-shrink-0">
+              <img className="w-48" alt={item.title} src={item.image} />
+            </div>
+            <div>
+              <h4 className="text-lg font-bold">{item.title}</h4>
+              <p className="mt-1">{item.description}</p>
+            </div>
+          </div>
+        ))
+      )}
     </>
   );
 }
