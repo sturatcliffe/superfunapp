@@ -1,7 +1,7 @@
-import { json, useLoaderData, Outlet, NavLink } from "remix";
+import { json, useLoaderData, Outlet, NavLink, redirect } from "remix";
 import type { LoaderFunction } from "remix";
 
-import { requireUserId } from "~/session.server";
+import { getUser, requireUserId } from "~/session.server";
 import { getUsers } from "~/models/user.server";
 
 type LoaderData = {
@@ -11,6 +11,12 @@ type LoaderData = {
 export const loader: LoaderFunction = async ({ request }) => {
   await requireUserId(request);
   const userListItems = await getUsers();
+
+  const user = await getUser(request);
+  if(user && user.name == null){
+    return redirect("/profile");
+  }
+
   return json<LoaderData>({ userListItems });
 };
 
@@ -29,7 +35,7 @@ export default function UsersPage() {
                   }
                   to={user.id}
                 >
-                  📝 {user.email}
+                  📝 {user.name}
                 </NavLink>
               </li>
             ))}

@@ -10,7 +10,8 @@ generator client {
 model User {
   id    String @id @default(cuid())
   email String @unique
-
+  name String?
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -31,6 +32,7 @@ model Item {
   title       String
   description String
   image       String
+  watched     Boolean?    @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
