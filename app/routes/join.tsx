@@ -22,6 +22,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 interface ActionData {
   errors: {
+    name?:string;
     email?: string;
     password?: string;
   };
@@ -29,9 +30,17 @@ interface ActionData {
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
+  const name = formData.get("name");
   const email = formData.get("email");
   const password = formData.get("password");
   const redirectTo = formData.get("redirectTo");
+
+  if (typeof name !== "string") {
+    return json<ActionData>(
+      { errors: { name: "User name is required" } },
+      { status: 400 }
+    );
+  }
 
   if (!validateEmail(email)) {
     return json<ActionData>(
@@ -62,7 +71,7 @@ export const action: ActionFunction = async ({ request }) => {
     );
   }
 
-  const user = await createUser(email, password);
+  const user = await createUser(email, password, name);
 
   return createUserSession({
     request,
@@ -82,6 +91,7 @@ export default function Join() {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? undefined;
   const actionData = useActionData() as ActionData;
+  const nameRef = React.useRef<HTMLInputElement>(null);
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
 
@@ -91,12 +101,42 @@ export default function Join() {
     } else if (actionData?.errors?.password) {
       passwordRef.current?.focus();
     }
+    else{
+      nameRef.current?.focus();
+    }
   }, [actionData]);
 
   return (
     <div className="flex min-h-full flex-col justify-center">
       <div className="mx-auto w-full max-w-md px-8">
         <Form method="post" className="space-y-6">
+        <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700"
+            >
+              User Name
+            </label>
+            <div className="mt-1">
+              <input
+                ref={nameRef}
+                id="name"
+                required
+                autoFocus={true}
+                name="name"
+                type="text"
+                autoComplete="name"
+                aria-invalid={actionData?.errors?.name ? true : undefined}
+                aria-describedby="name-error"
+                className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
+              />
+              {actionData?.errors?.name && (
+                <div className="pt-1 text-red-700" id="name-error">
+                  {actionData.errors.name}
+                </div>
+              )}
+            </div>
+          </div>
           <div>
             <label
               htmlFor="email"
