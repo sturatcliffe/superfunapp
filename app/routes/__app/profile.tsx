@@ -6,11 +6,10 @@ import {
     LoaderFunction,
     redirect,
     useActionData,
-    useLoaderData,
     useSearchParams
 } from "remix";
 import { updateUserName } from "~/models/user.server";
-import { getUser } from "~/session.server";
+import { getUser, getUserId } from "~/session.server";
 
 interface ActionData {
     errors?: {
@@ -30,7 +29,7 @@ export const action: ActionFunction = async ({ request }) => {
     const formData = await request.formData();
     const name = formData.get("name");
     const redirectTo = formData.get("redirectTo") as string;
-    const user = await getUser(request);
+    const userId = await getUserId(request) as string;
 
     if (typeof name !== "string") {
         return json<ActionData>(
@@ -39,7 +38,7 @@ export const action: ActionFunction = async ({ request }) => {
         );
     }
 
-    await updateUserName(user?.id as string, name);
+    await updateUserName(userId, name);
 
     return redirect(redirectTo);
 };
@@ -49,7 +48,6 @@ export default function ProfilePage() {
     const actionData = useActionData() as ActionData;
     const nameRef = React.useRef<HTMLInputElement>(null);
     const redirectTo = searchParams.get("redirectTo") || "/users";
-    const userId = searchParams.get("userId") || "";
 
     React.useEffect(() => {
         if (actionData?.errors?.name) {
