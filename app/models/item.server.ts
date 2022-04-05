@@ -13,6 +13,7 @@ export function getWatchlistItems({ userId }: { userId: User["id"] }) {
       description: true,
       url: true,
       image: true,
+      watched: true,
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -49,4 +50,15 @@ export function deleteItem({
   return prisma.item.deleteMany({
     where: { id, userId },
   });
+}
+
+export function markAsWatched(id: string){
+  return prisma.item.update({
+    where :{
+      id: id,
+    },
+    data:{
+      watched : true
+    }
+  })
 }

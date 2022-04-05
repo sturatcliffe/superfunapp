@@ -32,7 +32,8 @@ model Item {
   title       String
   description String
   image       String
-
+  watched     Boolean? @default(false)
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
