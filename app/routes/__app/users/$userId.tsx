@@ -1,10 +1,21 @@
 import * as React from "react";
 import * as cheerio from "cheerio";
-import { LoaderFunction, ActionFunction, useTransition } from "remix";
-import { redirect } from "remix";
-import { json, useLoaderData, useCatch, Form, useActionData } from "remix";
+import type { LoaderFunction, ActionFunction } from "remix";
+import {
+  json,
+  useLoaderData,
+  useCatch,
+  Form,
+  useActionData,
+  useTransition,
+  redirect,
+} from "remix";
 import invariant from "tiny-invariant";
-import { getWatchlistItems, createItem, markAsWatched } from "~/models/item.server";
+import {
+  getWatchlistItems,
+  createItem,
+  markAsWatched,
+} from "~/models/item.server";
 import { requireUserId } from "~/session.server";
 
 type LoaderData = {
@@ -12,11 +23,9 @@ type LoaderData = {
 };
 
 type ActionData = {
-  data?: object;
   errors?: {
     url?: string;
   };
-  success?: boolean;
 };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -35,7 +44,7 @@ export const action: ActionFunction = async ({ request, params }) => {
   const action = formData.get("action") as string;
   const itemId = formData.get("itemId") as string;
 
-  if (action == "create") {
+  if (action === "create") {
     if (
       typeof url !== "string" ||
       !url.startsWith("https://www.imdb.com/title/")
@@ -51,7 +60,9 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const rawTitle = $("meta[property='twitter:title']").attr("content");
     const title = rawTitle?.substring(0, rawTitle.length - 7);
-    const description = $("meta[property='twitter:description']").attr("content");
+    const description = $("meta[property='twitter:description']").attr(
+      "content"
+    );
     const image = $("meta[property='twitter:image']").attr("content");
 
     if (
@@ -72,9 +83,8 @@ export const action: ActionFunction = async ({ request, params }) => {
       image,
       userId: params.userId as string,
     });
-  }
-  else {
-    await markAsWatched(itemId)
+  } else {
+    await markAsWatched(itemId);
   }
 
   return redirect(`/users/${params.userId}`);
@@ -86,36 +96,31 @@ export default function UserDetailsPage() {
   const urlRef = React.useRef<HTMLInputElement>(null);
   const transition = useTransition();
   const [showAll, setShowAll] = React.useState(false);
-  const [enteredText, setEnteredText] = React.useState(""); 
 
-  let itemsToShow = showAll ? data.items : data.items.filter(x => !x.watched);
+  let itemsToShow = showAll ? data.items : data.items.filter((x) => !x.watched);
   let isSubmitting = transition.state === "submitting";
- 
+
   React.useEffect(() => {
     if (actionData?.errors?.url) {
       urlRef.current?.focus();
     }
-    if(!isSubmitting && !actionData?.errors){
-      setEnteredText('');
-      urlRef.current?.focus();
+    if (!isSubmitting && !actionData?.errors) {
+      if (urlRef.current) {
+        urlRef.current.value = "";
+        urlRef.current.focus();
+      }
     }
   }, [actionData, isSubmitting]);
-
 
   return (
     <>
       <Form method="post">
-        <fieldset
-          className="flex"
-          disabled={isSubmitting}
-        >
+        <fieldset className="flex" disabled={isSubmitting}>
           <div className="w-full">
             <input
               ref={urlRef}
               name="url"
               placeholder="Enter an IMDB URL..."
-              value={enteredText}
-              onChange={(e) => setEnteredText(e.target.value)}
               className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
               aria-invalid={actionData?.errors?.url ? true : undefined}
               aria-errormessage={
@@ -129,37 +134,62 @@ export default function UserDetailsPage() {
             )}
           </div>
           <div>
-          <input type="hidden" name="action" value={"create"}></input>
-          <button
-            type="submit"
-            className={`${isSubmitting ? "cursor-not-allowed opacity-50 " : ""} ml-4 rounded bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400`}
-          >
-          {isSubmitting
-            ? 
-            <span className="flex justify-start">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              <span>Saving...</span>
-            </span>
-            : "Save" }
-          </button>
+            <input type="hidden" name="action" value={"create"}></input>
+            <button
+              type="submit"
+              className={`${
+                isSubmitting ? "cursor-not-allowed opacity-50 " : ""
+              } ml-4 rounded bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400`}
+            >
+              {isSubmitting ? (
+                <span className="flex justify-start">
+                  <svg
+                    className="-ml-1 mr-3 h-5 w-5 animate-spin text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span>Saving...</span>
+                </span>
+              ) : (
+                "Save"
+              )}
+            </button>
           </div>
         </fieldset>
       </Form>
-      { data.items.filter(x=> x.watched).length > 0 && itemsToShow.length > 0 &&
-      (<div className="flex justify-end">
-        <div className="form-check  p-4">
-          <input
-            className="form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
-            onChange={() => setShowAll(!showAll)}
-            type="checkbox" />
-          <label className="form-check-label inline-block text-gray-800" htmlFor="showAllx">
-            Include watched items
-          </label>
-        </div>              
-      </div>)}
+      {data.items.filter((x) => x.watched).length > 0 &&
+        itemsToShow.length > 0 && (
+          <div className="flex justify-end">
+            <div className="form-check  p-4">
+              <input
+                className="form-check-input float-left mt-1 mr-2 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-white bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-blue-600 checked:bg-blue-600 focus:outline-none"
+                onChange={() => setShowAll(!showAll)}
+                type="checkbox"
+              />
+              <label
+                className="form-check-label inline-block text-gray-800"
+                htmlFor="showAllx"
+              >
+                Include watched items
+              </label>
+            </div>
+          </div>
+        )}
 
       {data.items.length === 0 ? (
         <p className="mt-8">
@@ -168,7 +198,7 @@ export default function UserDetailsPage() {
         </p>
       ) : (
         itemsToShow.map((item) => (
-          (<Form method="post" key={item.id}>
+          <Form method="post" key={item.id}>
             <div className="mt-8 flex">
               <div className="mr-4 flex-shrink-0">
                 <img className="w-48" alt={item.title} src={item.image} />
@@ -176,19 +206,28 @@ export default function UserDetailsPage() {
               <div className="flex flex-col">
                 <h4 className="text-lg font-bold">{item.title}</h4>
                 <p className="mt-1 flex-1">{item.description}</p>
-                  <div className=" self-end">
-                    <input type="hidden" name="itemId" value={item.id}></input>
-                    <button type="submit"
-                      className={`${item.watched ? "bg-green-600 opacity-60 cursor-not-allowed" : "bg-pink-600"} text-white py-1 px-2 text-sm block rounded-full mt-auto justify-self-end self-end`}
-                      disabled={item.watched!}
-                    >
-                      { item.watched ? "Watched" : "Mark as Watched" }
-                    </button>
-                  </div>
+                <div className=" self-end">
+                  <input type="hidden" name="itemId" value={item.id}></input>
+                  <button
+                    type="submit"
+                    className={`${
+                      item.watched
+                        ? "cursor-not-allowed bg-green-600 opacity-60"
+                        : "bg-pink-600"
+                    } mt-auto block self-end justify-self-end rounded-full py-1 px-2 text-sm text-white`}
+                    disabled={item.watched!}
+                  >
+                    {item.watched ? "Watched" : "Mark as Watched"}
+                  </button>
+                </div>
               </div>
-              <input type="hidden" name="action" value={"markAsWatched"}></input>
+              <input
+                type="hidden"
+                name="action"
+                value={"markAsWatched"}
+              ></input>
             </div>
-          </Form>)
+          </Form>
         ))
       )}
     </>
