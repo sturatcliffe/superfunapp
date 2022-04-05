@@ -28,8 +28,11 @@ export function createItem({
 }: Pick<Item, "title" | "description" | "url" | "image"> & {
   userId: User["id"];
 }) {
-  return prisma.item.create({
-    data: {
+  return prisma.item.upsert({
+    where: {
+      url,
+    },
+    create: {
       title,
       description,
       url,
@@ -40,6 +43,7 @@ export function createItem({
         },
       },
     },
+    update: {},
   });
 }
 
