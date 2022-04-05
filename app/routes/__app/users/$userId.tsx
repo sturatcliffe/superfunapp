@@ -29,7 +29,7 @@ type ActionData = {
 };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
-  const userId = await requireUserId(request);
+  await requireUserId(request);
   invariant(params.userId, "userId not found");
 
   const items = await getWatchlistItems({ userId: params.userId as string });
@@ -204,7 +204,13 @@ export default function UserDetailsPage() {
                 <img className="w-48" alt={item.title} src={item.image} />
               </div>
               <div className="flex flex-col">
-                <h4 className="text-lg font-bold">{item.title}</h4>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  className="text-lg font-bold transition hover:text-slate-600 hover:underline"
+                >
+                  {item.title}
+                </a>
                 <p className="mt-1 flex-1">{item.description}</p>
                 <div className=" self-end">
                   <input type="hidden" name="itemId" value={item.id}></input>
