@@ -17,7 +17,6 @@ import {
   markAsWatched,
 } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
-import { BrowserHistory, createBrowserHistory } from "history";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
@@ -96,7 +95,6 @@ export default function UserDetailsPage() {
   const urlRef = React.useRef<HTMLInputElement>(null);
   const transition = useTransition();
   const [showAll, setShowAll] = React.useState(false);
-  //const history = createBrowserHistory();
 
   let itemsToShow = showAll ? data.items : data.items.filter((x) => !x.watched);
   let isSubmitting = transition.state === "submitting";
@@ -112,12 +110,6 @@ export default function UserDetailsPage() {
       }
     }
   }, [actionData, isSubmitting]);
-
-  // React.useEffect(() => {
-  //   let unlisten = history.listen(() => {
-  //     setShowAll(false);
-  //   });
-  // });
 
   return (
     <>
