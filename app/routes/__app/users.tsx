@@ -9,11 +9,11 @@ type LoaderData = {
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await requireUserId(request);
+  const userId = await requireUserId(request);
   const userListItems = await getUsers();
 
   const user = await getUser(request);
-  if(user && user.name == null){
+  if (user && user.name == null) {
     return redirect("/profile");
   }
 
