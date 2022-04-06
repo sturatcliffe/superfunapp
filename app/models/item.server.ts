@@ -20,7 +20,7 @@ export function getWatchlistItems({ userId }: { userId: User["id"] }) {
   });
 }
 
-export function createItem({
+export async function upsertItem({
   title,
   description,
   url,
@@ -29,19 +29,28 @@ export function createItem({
 }: Pick<Item, "title" | "description" | "url" | "image"> & {
   userId: User["id"];
 }) {
-  return prisma.item.create({
-    data: {
+  const existingItem = await prisma.item.findFirst({
+    where: {
       title,
-      description,
-      url,
-      image,
-      user: {
-        connect: {
-          id: userId,
+      userId
+    }
+  });
+
+  if (!existingItem) {
+    return prisma.item.create({
+      data: {
+        title,
+        description,
+        url,
+        image,
+        user: {
+          connect: {
+            id: userId,
+          },
         },
       },
-    },
-  });
+    });
+  }
 }
 
 export function deleteItem({
@@ -53,13 +62,13 @@ export function deleteItem({
   });
 }
 
-export function markAsWatched(id: string){
+export function markAsWatched(id: string) {
   return prisma.item.update({
-    where :{
+    where: {
       id: id,
     },
-    data:{
-      watched : true
-    }
-  })
+    data: {
+      watched: true,
+    },
+  });
 }
