@@ -14,8 +14,9 @@ export function getWatchlistItems({ userId }: { userId: User["id"] }) {
       url: true,
       image: true,
       watched: true,
+      userId: true
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy: { createdAt: "desc" },
   });
 }
 
