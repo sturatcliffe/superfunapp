@@ -30,7 +30,7 @@ type ActionData = {
 };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
-  await requireUserId(request);
+  const userId = await requireUserId(request);
   invariant(params.userId, "userId not found");
 
   const items = await getWatchlistItems({ userId: params.userId as string });
