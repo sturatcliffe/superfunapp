@@ -28,7 +28,7 @@ model Password {
 
 model Item {
   id          String @id @default(cuid())
-  url         String @unique
+  url         String
   title       String
   description String
   image       String

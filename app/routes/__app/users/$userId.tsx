@@ -13,7 +13,7 @@ import {
 import invariant from "tiny-invariant";
 import {
   getWatchlistItems,
-  createItem,
+  upsertItem,
   markAsWatched,
 } from "~/models/item.server";
 import { requireUserId } from "~/session.server";
@@ -37,7 +37,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
-  const userId = await requireUserId(request);
+  await requireUserId(request);
 
   const formData = await request.formData();
   const url = formData.get("url") as string | undefined;
@@ -76,7 +76,7 @@ export const action: ActionFunction = async ({ request, params }) => {
       );
     }
 
-    await createItem({
+    await upsertItem({
       title,
       description,
       url,
