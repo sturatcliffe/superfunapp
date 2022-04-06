@@ -20,6 +20,7 @@ import { requireUserId } from "~/session.server";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
+  userId: Awaited<ReturnType<typeof String>>;
 };
 
 type ActionData = {
@@ -29,16 +30,14 @@ type ActionData = {
 };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
-  await requireUserId(request);
+  const userId = await requireUserId(request);
   invariant(params.userId, "userId not found");
 
   const items = await getWatchlistItems({ userId: params.userId as string });
-  return json<LoaderData>({ items });
+  return json<LoaderData>({ items, userId });
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
-  await requireUserId(request);
-
   const formData = await request.formData();
   const url = formData.get("url") as string | undefined;
   const action = formData.get("action") as string;
@@ -172,24 +171,24 @@ export default function UserDetailsPage() {
           </div>
         </fieldset>
       </Form>
-      {data.items.filter((x) => x.watched).length > 0 &&
-        itemsToShow.length > 0 && (
-          <div className="flex justify-end">
-            <div className="form-check  p-4">
-              <input
-                className="form-check-input float-left mt-1 mr-2 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-white bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-blue-600 checked:bg-blue-600 focus:outline-none"
-                onChange={() => setShowAll(!showAll)}
-                type="checkbox"
-              />
-              <label
-                className="form-check-label inline-block text-gray-800"
-                htmlFor="showAllx"
-              >
-                Include watched items
-              </label>
-            </div>
+      {(data.items.filter((x) => x.watched).length > 0 ||
+        itemsToShow.length > 0) && (
+        <div className="flex justify-end">
+          <div className="form-check  p-4">
+            <input
+              className="form-check-input float-left mt-1 mr-2 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-white bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-blue-600 checked:bg-blue-600 focus:outline-none"
+              onChange={() => setShowAll(!showAll)}
+              type="checkbox"
+            />
+            <label
+              className="form-check-label inline-block text-gray-800"
+              htmlFor="showAll"
+            >
+              Include watched items
+            </label>
           </div>
-        )}
+        </div>
+      )}
 
       {data.items.length === 0 ? (
         <p className="mt-8">
@@ -199,7 +198,7 @@ export default function UserDetailsPage() {
       ) : (
         itemsToShow.map((item) => (
           <Form method="post" key={item.id}>
-            <div className="mt-8 flex">
+            <div className="mt-8 mb-8 flex">
               <div className="mr-4 flex-shrink-0">
                 <img className="w-48" alt={item.title} src={item.image} />
               </div>
@@ -217,11 +216,13 @@ export default function UserDetailsPage() {
                   <button
                     type="submit"
                     className={`${
-                      item.watched
-                        ? "cursor-not-allowed bg-green-600 opacity-60"
-                        : "bg-pink-600"
+                      item.watched ? "bg-green-600" : "bg-pink-600"
+                    } ${
+                      item.watched || item.userId != data.userId
+                        ? "cursor-not-allowed opacity-60"
+                        : ""
                     } mt-auto block self-end justify-self-end rounded-full py-1 px-2 text-sm text-white`}
-                    disabled={item.watched!}
+                    disabled={item.watched! || item.userId != data.userId}
                   >
                     {item.watched ? "Watched" : "Mark as Watched"}
                   </button>
