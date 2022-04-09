@@ -14,7 +14,13 @@ export function getWatchlistItems({ userId }: { userId: User["id"] }) {
       url: true,
       image: true,
       watched: true,
-      userId: true
+      userId: true,
+      createdBy: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -26,14 +32,16 @@ export async function upsertItem({
   url,
   image,
   userId,
+  createdById,
 }: Pick<Item, "title" | "description" | "url" | "image"> & {
   userId: User["id"];
+  createdById: User["id"];
 }) {
   const existingItem = await prisma.item.findFirst({
     where: {
       title,
-      userId
-    }
+      userId,
+    },
   });
 
   if (!existingItem) {
@@ -46,6 +54,11 @@ export async function upsertItem({
         user: {
           connect: {
             id: userId,
+          },
+        },
+        createdBy: {
+          connect: {
+            id: createdById,
           },
         },
       },

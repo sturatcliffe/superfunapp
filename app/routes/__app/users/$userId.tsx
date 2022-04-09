@@ -22,7 +22,7 @@ import { sendMail } from "~/email.server";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
-  userId: Awaited<ReturnType<typeof String>>;
+  userId: string;
 };
 
 type ActionData = {
@@ -86,6 +86,7 @@ export const action: ActionFunction = async ({ request, params }) => {
       url,
       image,
       userId: params.userId as string,
+      createdById: user.id,
     });
 
     if (user.id != params.userId) {
@@ -236,7 +237,15 @@ export default function UserDetailsPage() {
                   {item.title}
                 </a>
                 <p className="mt-1 flex-1">{item.description}</p>
-                <div className=" self-end">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm italic text-gray-700">
+                    Added by:{" "}
+                    <span className="font-semibold">
+                      {item.createdBy.id === data.userId
+                        ? "You"
+                        : item.createdBy.name}
+                    </span>
+                  </span>
                   <input type="hidden" name="itemId" value={item.id}></input>
                   <button
                     type="submit"
@@ -246,7 +255,7 @@ export default function UserDetailsPage() {
                       item.watched || item.userId != data.userId
                         ? "cursor-not-allowed opacity-60"
                         : ""
-                    } mt-auto block self-end justify-self-end rounded-full py-1 px-2 text-sm text-white`}
+                    } mt-auto block rounded-full py-1 px-2 text-sm text-white`}
                     disabled={item.watched! || item.userId != data.userId}
                   >
                     {item.watched ? "Watched" : "Mark as Watched"}
