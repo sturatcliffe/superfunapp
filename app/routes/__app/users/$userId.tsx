@@ -16,7 +16,9 @@ import {
   upsertItem,
   markAsWatched,
 } from "~/models/item.server";
-import { requireUserId } from "~/session.server";
+import { requireUser, requireUserId } from "~/session.server";
+import { getUserById } from "~/models/user.server";
+import { sendMail } from "~/email.server";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
@@ -38,6 +40,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
+  const user = await requireUser(request);
   const formData = await request.formData();
   const url = formData.get("url") as string | undefined;
   const action = formData.get("action") as string;
@@ -82,6 +85,26 @@ export const action: ActionFunction = async ({ request, params }) => {
       image,
       userId: params.userId as string,
     });
+
+    if (user.id != params.userId) {
+      const otherUser = await getUserById(params.userId);
+      if (otherUser) {
+        const body = `
+          <p>Hello${otherUser.name ? ` ${otherUser.name}` : ""},</p>
+          <p>${
+            user.name ?? user.email
+          } has just added <b>${title}</b> to your watchlist!</p>
+          <p>Toodles!</p>
+        `;
+
+        await sendMail(
+          otherUser.name ?? otherUser.email,
+          otherUser.email,
+          "SuperFunApp: A new item has been added to your watchlist!",
+          body
+        );
+      }
+    }
   } else {
     await markAsWatched(itemId);
   }
