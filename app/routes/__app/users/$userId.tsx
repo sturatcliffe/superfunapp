@@ -40,6 +40,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
+  invariant(params.userId, "userId not found");
+
   const user = await requireUser(request);
   const formData = await request.formData();
   const url = formData.get("url") as string | undefined;
