@@ -138,7 +138,7 @@ export default function UserDetailsPage() {
   }, [actionData, isSubmitting]);
 
   return (
-    <>
+    <div className="pb-4">
       <Form method="post">
         <fieldset className="flex" disabled={isSubmitting}>
           <div className="w-full">
@@ -271,7 +271,7 @@ export default function UserDetailsPage() {
           </Form>
         ))
       )}
-    </>
+    </div>
   );
 }
 
