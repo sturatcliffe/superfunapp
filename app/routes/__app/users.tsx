@@ -42,7 +42,7 @@ export default function UsersPage() {
                   src={`https://www.gravatar.com/avatar/${Md5.init(
                     user.email
                   )}?s=30&d=retro`}
-                  alt={user.name}
+                  alt={user.name ?? user.email}
                 />
                 {user.name}
               </NavLink>
