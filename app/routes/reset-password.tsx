@@ -78,7 +78,7 @@ export const action: ActionFunction = async ({ request }) => {
     return await resetPasswordFailure(request);
   }
 
-  await updatePassword(user.id, password);
+  await updatePassword(user.id, password as string);
 
   return createUserSession({
     request,
