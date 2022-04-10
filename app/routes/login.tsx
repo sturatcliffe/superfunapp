@@ -9,7 +9,7 @@ import {
   useSearchParams,
 } from "remix";
 
-import { createUserSession, getUserId } from "~/session.server";
+import { createUserSession, getUserId } from "~/services/session.server";
 import { verifyLogin } from "~/models/user.server";
 import { validateEmail } from "~/utils";
 

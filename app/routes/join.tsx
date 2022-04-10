@@ -9,7 +9,7 @@ import {
   useActionData,
 } from "remix";
 
-import { getUserId, createUserSession } from "~/session.server";
+import { getUserId, createUserSession } from "~/services/session.server";
 
 import { createUser, getUserByEmail } from "~/models/user.server";
 import { validateEmail } from "~/utils";
@@ -22,7 +22,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 interface ActionData {
   errors: {
-    name?:string;
+    name?: string;
     email?: string;
     password?: string;
   };
@@ -100,8 +100,7 @@ export default function Join() {
       emailRef.current?.focus();
     } else if (actionData?.errors?.password) {
       passwordRef.current?.focus();
-    }
-    else{
+    } else {
       nameRef.current?.focus();
     }
   }, [actionData]);
@@ -110,7 +109,7 @@ export default function Join() {
     <div className="flex min-h-full flex-col justify-center">
       <div className="mx-auto w-full max-w-md px-8">
         <Form method="post" className="space-y-6">
-        <div>
+          <div>
             <label
               htmlFor="name"
               className="block text-sm font-medium text-gray-700"

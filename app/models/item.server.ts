@@ -1,7 +1,8 @@
 import type { User, Item } from "@prisma/client";
 
-import { prisma } from "~/db.server";
+import { prisma } from "~/services/db.server";
 
+export type WatchListItems = Awaited<ReturnType<typeof getWatchlistItems>>;
 export type { Item } from "@prisma/client";
 
 export function getWatchlistItems({ userId }: { userId: User["id"] }) {

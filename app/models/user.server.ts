@@ -1,12 +1,14 @@
 import type { Password, User } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-import { prisma } from "~/db.server";
+import { prisma } from "~/services/db.server";
 
 export type { User } from "@prisma/client";
 
 export async function getUsers() {
-  return prisma.user.findMany({ select: { id: true, email: true, name: true } });
+  return prisma.user.findMany({
+    select: { id: true, email: true, name: true },
+  });
 }
 
 export async function getUserById(id: User["id"]) {
@@ -17,7 +19,11 @@ export async function getUserByEmail(email: User["email"]) {
   return prisma.user.findUnique({ where: { email } });
 }
 
-export async function createUser(email: User["email"], password: string, name: string) {
+export async function createUser(
+  email: User["email"],
+  password: string,
+  name: string
+) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   return prisma.user.create({
@@ -28,7 +34,7 @@ export async function createUser(email: User["email"], password: string, name: s
           hash: hashedPassword,
         },
       },
-      name
+      name,
     },
   });
 }
@@ -37,7 +43,7 @@ export async function deleteUserByEmail(email: User["email"]) {
   return prisma.user.delete({ where: { email } });
 }
 
-export async function updateUserName(id: User["id"], username: string){
+export async function updateUserName(id: User["id"], username: string) {
   return prisma.user.update({
     where: {
       id: id,
@@ -45,7 +51,7 @@ export async function updateUserName(id: User["id"], username: string){
     data: {
       name: username,
     },
-  })
+  });
 }
 
 export async function verifyLogin(

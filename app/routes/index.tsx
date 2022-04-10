@@ -1,5 +1,5 @@
 import { LoaderFunction, redirect } from "remix";
-import { getUserId } from "~/session.server";
+import { getUserId } from "~/services/session.server";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const userId = await getUserId(request);

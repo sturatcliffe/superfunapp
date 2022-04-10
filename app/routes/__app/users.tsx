@@ -1,7 +1,7 @@
 import { json, useLoaderData, Outlet, NavLink, redirect } from "remix";
 import type { LoaderFunction } from "remix";
 
-import { getUser, requireUserId } from "~/session.server";
+import { getUser, requireUserId } from "~/services/session.server";
 import { getUsers } from "~/models/user.server";
 
 type LoaderData = {
