@@ -19,6 +19,8 @@ export const sessionStorage = createCookieSessionStorage({
 });
 
 const USER_SESSION_KEY = "userId";
+const RESET_PASSWORD_OTP_KEY = "resetPasswordOtp";
+const RESET_PASSWORD_EMAIL_KEY = "resetPasswordEmail";
 
 export async function getSession(request: Request) {
   const cookie = request.headers.get("Cookie");
@@ -74,6 +76,8 @@ export async function createUserSession({
   redirectTo: string;
 }) {
   const session = await getSession(request);
+  session.unset(RESET_PASSWORD_EMAIL_KEY);
+  session.unset(RESET_PASSWORD_OTP_KEY);
   session.set(USER_SESSION_KEY, userId);
   return redirect(redirectTo, {
     headers: {
@@ -91,6 +95,66 @@ export async function logout(request: Request) {
   return redirect("/", {
     headers: {
       "Set-Cookie": await sessionStorage.destroySession(session),
+    },
+  });
+}
+
+export async function forgotPassword(
+  request: Request,
+  email: string,
+  otp: string
+) {
+  const session = await getSession(request);
+  session.set(RESET_PASSWORD_EMAIL_KEY, email);
+  session.set(RESET_PASSWORD_OTP_KEY, otp);
+  return redirect("/reset-password", {
+    headers: {
+      "Set-Cookie": await sessionStorage.commitSession(session, {
+        maxAge: 60 * 5,
+      }),
+    },
+  });
+}
+
+export async function getResetPasswordEmail(request: Request) {
+  const session = await getSession(request);
+  return session.get(RESET_PASSWORD_EMAIL_KEY);
+}
+
+export async function validateOtp(
+  request: Request,
+  email: string,
+  otp: string
+) {
+  const session = await getSession(request);
+
+  if (
+    !session.has(RESET_PASSWORD_EMAIL_KEY) ||
+    !session.has(RESET_PASSWORD_OTP_KEY)
+  ) {
+    return false;
+  }
+
+  const sessionEmail = session.get(RESET_PASSWORD_EMAIL_KEY);
+  const sessionOtp = session.get(RESET_PASSWORD_OTP_KEY);
+
+  if (sessionEmail !== email || sessionOtp !== otp) {
+    return false;
+  }
+
+  return true;
+}
+
+export async function resetPasswordFailure(request: Request) {
+  const session = await getSession(request);
+  session.unset(RESET_PASSWORD_EMAIL_KEY);
+  session.unset(RESET_PASSWORD_OTP_KEY);
+  session.flash("error", "This OTP has expired, please request a new one.");
+  return redirect("/forgot-password", {
+    headers: {
+      "Set-Cookie": await sessionStorage.commitSession(session, {
+        maxAge: undefined,
+      }),
     },
   });
 }

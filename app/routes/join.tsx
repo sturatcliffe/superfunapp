@@ -12,7 +12,7 @@ import {
 import { getUserId, createUserSession } from "~/services/session.server";
 
 import { createUser, getUserByEmail } from "~/models/user.server";
-import { validateEmail } from "~/utils";
+import { validateEmail, validatePassword } from "~/utils";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await getUserId(request);
@@ -49,16 +49,9 @@ export const action: ActionFunction = async ({ request }) => {
     );
   }
 
-  if (typeof password !== "string") {
+  if (!validatePassword(password)) {
     return json<ActionData>(
-      { errors: { password: "Password is required" } },
-      { status: 400 }
-    );
-  }
-
-  if (password.length < 8) {
-    return json<ActionData>(
-      { errors: { password: "Password is too short" } },
+      { errors: { password: "Password must be 8 characters or more." } },
       { status: 400 }
     );
   }
