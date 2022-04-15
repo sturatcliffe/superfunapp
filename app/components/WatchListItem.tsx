@@ -1,7 +1,9 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Form, useTransition } from "remix";
+import { TrashIcon } from "@heroicons/react/outline";
 
 import type { WatchListItems } from "~/models/item.server";
+import ConfirmModal from "./ConfirmModal";
 
 interface Props {
   item: WatchListItems[number];
@@ -12,6 +14,7 @@ const MARK_AS_WATCHED_ACTION = "markAsWatched";
 
 const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
   const transition = useTransition();
+  const [showModal, setShowModal] = useState(false);
 
   let isSubmitting =
     transition.submission?.formData.get("action") === MARK_AS_WATCHED_ACTION;
@@ -25,13 +28,31 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
         <img className="w-48" alt={item.title} src={item.image} />
       </div>
       <div className="flex flex-col">
-        <a
-          href={item.url}
-          target="_blank"
-          className="text-lg font-bold transition hover:text-slate-600 hover:underline"
-        >
-          {item.title}
-        </a>
+        <div className="flex w-full">
+          <a
+            href={item.url}
+            target="_blank"
+            className="w-full text-lg font-bold transition hover:text-slate-600 hover:underline"
+          >
+            {item.title}
+          </a>
+          {!item.watched && item.userId == currentUserId && (
+            <div className="flex justify-end">
+              <TrashIcon
+                className="h-6 w-6 cursor-pointer"
+                onClick={() => setShowModal(true)}
+              />
+              <ConfirmModal
+                open={showModal}
+                title="Are you sure?"
+                confirmText="Yes"
+                rejectText="No"
+                itemId={item.id}
+                cancelHandler={() => setShowModal(false)}
+              ></ConfirmModal>
+            </div>
+          )}
+        </div>
         <p className="mt-1 flex-1">{item.description}</p>
         <div className="flex items-center justify-between">
           <span className="text-sm italic text-gray-700">

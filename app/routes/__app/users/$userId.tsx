@@ -1,11 +1,12 @@
 import type { LoaderFunction, ActionFunction } from "remix";
-import { json, useLoaderData, useCatch, useActionData, redirect } from "remix";
+import { json, useLoaderData, useCatch, useActionData } from "remix";
 import invariant from "tiny-invariant";
 
 import {
   getWatchlistItems,
   upsertItem,
   markAsWatched,
+  deleteItem,
 } from "~/models/item.server";
 import { getUserById } from "~/models/user.server";
 
@@ -24,6 +25,7 @@ type LoaderData = {
 
 type ActionData = {
   errors?: Fields;
+  deleted?: boolean;
 };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -42,7 +44,9 @@ export const action: ActionFunction = async ({ request, params }) => {
   const url = formData.get("url") as string | undefined;
   const action = formData.get("action") as string;
   const itemId = formData.get("itemId") as string;
+  const userId = await requireUserId(request);
 
+  const MARK_AS_WATCHED_ACTION = "markAsWatched";
   if (action === "create") {
     if (
       typeof url !== "string" ||
@@ -95,11 +99,14 @@ export const action: ActionFunction = async ({ request, params }) => {
         );
       }
     }
-  } else {
+  } else if (action === "delete") {
+    await deleteItem({ id: itemId, userId });
+    return json<ActionData>({ deleted: true });
+  } else if (action === MARK_AS_WATCHED_ACTION && user.id === params.userId) {
     await markAsWatched(itemId);
   }
 
-  return redirect(`/users/${params.userId}`);
+  return json({});
 };
 
 export default function UserDetailsPage() {
