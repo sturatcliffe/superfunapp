@@ -9,6 +9,7 @@ interface props {
   confirmText: string;
   rejectText: string;
   itemId: string;
+  action: string;
   cancelHandler: () => void;
 }
 const ConfirmModal: FC<props> = (props) => {
@@ -65,9 +66,6 @@ const ConfirmModal: FC<props> = (props) => {
                     >
                       {props.title}
                     </Dialog.Title>
-                    {/* <div className="mt-2">
-                      <p className="text-sm text-gray-500">{props.title}</p>
-                    </div> */}
                   </div>
                 </div>
                 <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
@@ -77,7 +75,11 @@ const ConfirmModal: FC<props> = (props) => {
                       name="itemId"
                       value={props.itemId}
                     ></input>
-                    <input type="hidden" name="action" value={"delete"}></input>
+                    <input
+                      type="hidden"
+                      name="action"
+                      value={props.action}
+                    ></input>
                     <button
                       type="submit"
                       name="action"

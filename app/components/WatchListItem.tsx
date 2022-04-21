@@ -49,6 +49,7 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
                 rejectText="No"
                 itemId={item.id}
                 cancelHandler={() => setShowModal(false)}
+                action="delete"
               ></ConfirmModal>
             </div>
           )}
