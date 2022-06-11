@@ -9,7 +9,7 @@ import {
   useSearchParams,
 } from "remix";
 import { updateUserName } from "~/models/user.server";
-import { getUser, getUserId } from "~/services/session.server";
+import { getUser, getUserId, requireUserId } from "~/services/session.server";
 
 interface ActionData {
   errors?: {
@@ -26,10 +26,10 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export const action: ActionFunction = async ({ request }) => {
+  const userId = await requireUserId(request);
   const formData = await request.formData();
   const name = formData.get("name");
   const redirectTo = formData.get("redirectTo") as string;
-  const userId = (await getUserId(request)) as string;
 
   if (typeof name !== "string") {
     return json<ActionData>(
