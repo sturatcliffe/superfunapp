@@ -7,7 +7,7 @@ import ConfirmModal from "./ConfirmModal";
 
 interface Props {
   item: WatchListItems[number];
-  currentUserId: string;
+  currentUserId: number;
 }
 
 const MARK_AS_WATCHED_ACTION = "markAsWatched";

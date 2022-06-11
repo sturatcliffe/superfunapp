@@ -6,7 +6,7 @@ import WatchListItem from "./WatchListItem";
 
 interface Props {
   items: WatchListItems;
-  currentUserId: string;
+  currentUserId: number;
 }
 
 const WatchList: FC<Props> = ({ items, currentUserId }) => {

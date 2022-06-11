@@ -76,10 +76,10 @@ export function deleteItem({
   });
 }
 
-export function markAsWatched(id: string) {
+export function markAsWatched(id: number) {
   return prisma.item.update({
     where: {
-      id: id,
+      id,
     },
     data: {
       watched: true,

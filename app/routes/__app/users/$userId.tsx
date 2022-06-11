@@ -20,7 +20,7 @@ import { scrapeImdbData } from "~/services/imdb.server";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
-  userId: string;
+  userId: number;
 };
 
 type ActionData = {
@@ -32,7 +32,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   const userId = await requireUserId(request);
   invariant(params.userId, "userId not found");
 
-  const items = await getWatchlistItems({ userId: params.userId });
+  const items = await getWatchlistItems({ userId: parseInt(params.userId) });
   return json<LoaderData>({ items, userId });
 };
 
@@ -76,12 +76,12 @@ export const action: ActionFunction = async ({ request, params }) => {
       description,
       url,
       image,
-      userId: params.userId as string,
+      userId: parseInt(params.userId),
       createdById: user.id,
     });
 
-    if (user.id != params.userId) {
-      const otherUser = await getUserById(params.userId);
+    if (user.id != parseInt(params.userId)) {
+      const otherUser = await getUserById(parseInt(params.userId));
       if (otherUser) {
         const body = `
           <p>Hello${otherUser.name ? ` ${otherUser.name}` : ""},</p>
@@ -100,10 +100,13 @@ export const action: ActionFunction = async ({ request, params }) => {
       }
     }
   } else if (action === "delete") {
-    await deleteItem({ id: itemId, userId });
+    await deleteItem({ id: parseInt(itemId), userId });
     return json<ActionData>({ deleted: true });
-  } else if (action === MARK_AS_WATCHED_ACTION && user.id === params.userId) {
-    await markAsWatched(itemId);
+  } else if (
+    action === MARK_AS_WATCHED_ACTION &&
+    user.id === parseInt(params.userId)
+  ) {
+    await markAsWatched(parseInt(itemId));
   }
 
   return json({});

@@ -35,7 +35,7 @@ export default function UsersPage() {
                     isActive ? "bg-white" : ""
                   }`
                 }
-                to={user.id}
+                to={`${user.id}`}
               >
                 <img
                   className="mr-4 rounded-full"
