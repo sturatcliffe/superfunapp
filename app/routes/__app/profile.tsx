@@ -9,7 +9,7 @@ import {
   useSearchParams,
 } from "remix";
 import { updateUserName } from "~/models/user.server";
-import { getUser, getUserId, requireUserId } from "~/services/session.server";
+import { getUser, requireUserId } from "~/services/session.server";
 
 interface ActionData {
   errors?: {
