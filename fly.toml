@@ -4,7 +4,6 @@ kill_timeout = 5
 processes = [ ]
 
 [env]
-DATABASE_URL="mysql://8mo7604d99ks:pscale_pw_MSIzMOXg3fYIH0pESJFfTj1fkLrZ0azRuFdnFI9soAY@v9lge8ksl9sw.eu-west-2.psdb.cloud/superfunapp?sslaccept=strict"
 PORT = "8080"
 NODE_ENV = "production"
 
