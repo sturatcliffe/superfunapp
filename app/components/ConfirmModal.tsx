@@ -8,7 +8,7 @@ interface props {
   title?: string;
   confirmText: string;
   rejectText: string;
-  itemId: string;
+  itemId: number;
   action: string;
   cancelHandler: () => void;
 }
