@@ -1,6 +1,8 @@
 import { FC, useEffect, useRef } from "react";
 import { Form, useTransition } from "remix";
 
+import Input from "./Input";
+
 export interface Fields {
   url?: string;
 }
@@ -35,7 +37,7 @@ const AddNewItemForm: FC<Props> = ({ errors }) => {
       <input type="hidden" name="action" value={CREATE_ACTION}></input>
       <fieldset className="flex" disabled={isSubmitting}>
         <div className="w-full">
-          <input
+          <Input
             ref={urlRef}
             name="url"
             placeholder="Enter an IMDB URL..."
