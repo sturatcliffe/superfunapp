@@ -9,7 +9,7 @@ export const migrateFromSQLite = async () => {
   if (!existingUsers || existingUsers.length === 0) {
     console.log("NO USERS FOUND - MIGRATING...");
     const db = new Database(
-      "file:/data/sqlite.db",
+      "/data/sqlite.db",
       { readonly: true },
       (err: any) => {
         if (err) {
