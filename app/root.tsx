@@ -11,7 +11,6 @@ import type { LinksFunction, MetaFunction, LoaderFunction } from "remix";
 
 import tailwindStylesheetUrl from "./styles/tailwind.css";
 import { getUser } from "./services/session.server";
-import { migrateFromSQLite } from "./services/migrate.server";
 
 export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
@@ -28,7 +27,6 @@ type LoaderData = {
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await migrateFromSQLite();
   return json<LoaderData>({
     user: await getUser(request),
   });
