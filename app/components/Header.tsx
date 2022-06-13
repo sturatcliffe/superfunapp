@@ -1,9 +1,40 @@
-import { Link, Form } from "remix";
+import { useEffect, useState } from "react";
+import { Link, Form, useLocation } from "remix";
+import Pusher from "pusher-js";
 
-import { useUser } from "~/utils";
+import { useMatchesData, useUser } from "~/utils";
 
 export default function Header() {
   const user = useUser();
+  const data = useMatchesData("root");
+  let location = useLocation();
+
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(
+    (data?.unreadMessageCount as number) > 0 ?? false
+  );
+
+  useEffect(() => {
+    // @ts-ignore
+    const pusher = new Pusher(window?.ENV.PUSHER_APP_KEY, {
+      cluster: "eu",
+      forceTLS: true,
+    });
+
+    const channel = pusher.subscribe("chat");
+
+    channel.bind("message", (data: any) => {
+      if (window?.location.pathname !== "/chat" ?? false) {
+        setHasUnreadMessages(true);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (location.pathname === "/chat" ?? false) {
+      setHasUnreadMessages(false);
+    }
+  }, [location]);
+
   return (
     <header className="flex items-center justify-between bg-slate-800 p-4 text-white">
       <h1 className="text-3xl font-bold">
@@ -11,10 +42,15 @@ export default function Header() {
       </h1>
       <Link to="/profile">{user.email}</Link>
       <div className="flex items-center">
-        <span className="mr-2 rounded-full bg-teal-500 px-3 py-1 text-sm">
-          New! {"-->"}
-        </span>
-        <Link to="/chat">Chat</Link>
+        <Link to="/chat" className="relative">
+          Chat{" "}
+          {hasUnreadMessages && (
+            <span className="absolute -top-1 -right-2 flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+            </span>
+          )}
+        </Link>
         <Form action="/logout" method="post" className="ml-4">
           <button
             type="submit"

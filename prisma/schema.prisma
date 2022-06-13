@@ -10,17 +10,18 @@ generator client {
 }
 
 model User {
-  id    Int @id @default(autoincrement())
-  email String @unique
-  name String?
+  id                Int         @id       @default(autoincrement())
+  email             String      @unique
+  name              String?
+  lastReadMessages  DateTime?
   
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
-  password      Password?
-  items         Item[]    @relation(name: "Watchlist")
-  createdItems  Item[]    @relation(name: "CreatedItems")
-  messages      Message[]
+  password          Password?
+  items             Item[]      @relation(name: "Watchlist")
+  createdItems      Item[]      @relation(name: "CreatedItems")
+  messages          Message[]
 }
 
 model Password {

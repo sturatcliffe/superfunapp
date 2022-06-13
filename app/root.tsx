@@ -11,6 +11,8 @@ import type { LinksFunction, MetaFunction, LoaderFunction } from "remix";
 
 import tailwindStylesheetUrl from "./styles/tailwind.css";
 import { getUser } from "./services/session.server";
+import { prisma } from "./services/db.server";
+import { useLoaderData } from "@remix-run/react";
 
 export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
@@ -27,12 +29,30 @@ type LoaderData = {
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
+  const user = await getUser(request);
+  let unreadMessageCount;
+
+  if (user) {
+    const where = user.lastReadMessages
+      ? { createdAt: { gt: user.lastReadMessages } }
+      : {};
+
+    unreadMessageCount = await prisma.message.count({
+      where,
+    });
+  }
+
   return json<LoaderData>({
-    user: await getUser(request),
+    ENV: {
+      PUSHER_APP_KEY: process.env.PUSHER_APP_KEY,
+    },
+    user,
+    unreadMessageCount,
   });
 };
 
 export default function App() {
+  const data = useLoaderData();
   return (
     <html lang="en">
       <head>
@@ -41,6 +61,11 @@ export default function App() {
       </head>
       <body className="min-h-screen">
         <Outlet />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+          }}
+        />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
