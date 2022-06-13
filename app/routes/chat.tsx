@@ -14,6 +14,7 @@ import { pusher } from "~/services/pusher.server";
 
 import Input from "~/components/Input";
 import Header from "~/components/Header";
+import Gravatar from "~/components/Gravatar";
 
 type ActionData = {
   errors?: {
@@ -36,7 +37,7 @@ export const loader: LoaderFunction = async ({ request }) => {
       text: true,
       createdAt: true,
       updatedAt: true,
-      user: { select: { id: true, name: true } },
+      user: { select: { id: true, name: true, email: true } },
     },
   });
 
@@ -69,7 +70,7 @@ export const action: ActionFunction = async ({ request }) => {
       text: true,
       createdAt: true,
       updatedAt: true,
-      user: { select: { id: true, name: true } },
+      user: { select: { id: true, name: true, email: true } },
     },
   });
 
@@ -133,21 +134,34 @@ export default function ChatPage() {
         {messages.map((message: any) => (
           <li
             key={message.id}
-            className={`mb-4 rounded px-4 py-2 text-white last:mb-0 ${
+            className={`mb-4 flex items-center last:mb-0 ${
               message.user.id === userId
-                ? "ml-16 self-end bg-gray-500"
-                : "mr-16 bg-teal-500"
+                ? "flex-row-reverse self-end"
+                : "flex-row"
             }`}
           >
-            <div className="flex justify-between text-xs font-bold">
-              <span className="mr-8">
-                {message.user.id === userId ? "You" : message.user.name}
-              </span>
-              <span>
-                {formatDistanceToNow(new Date(message.createdAt))} ago
-              </span>
+            <Gravatar
+              size={50}
+              name={message.user.name}
+              email={message.user.email}
+            />
+            <div
+              className={`rounded px-4 py-2 text-xs font-bold text-white ${
+                message.user.id === userId
+                  ? "mr-4 ml-16 bg-gray-500"
+                  : "ml-4 mr-16 bg-teal-500"
+              }`}
+            >
+              <div className="flex justify-between">
+                <span className="mr-8">
+                  {message.user.id === userId ? "You" : message.user.name}
+                </span>
+                <span>
+                  {formatDistanceToNow(new Date(message.createdAt))} ago
+                </span>
+              </div>
+              <p className="mt-2">{message.text}</p>
             </div>
-            <p className="mt-2">{message.text}</p>
           </li>
         ))}
       </ul>
