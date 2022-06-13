@@ -41,7 +41,14 @@ export const loader: LoaderFunction = async ({ request }) => {
     },
   });
 
-  return json({ key: process.env.PUSHER_APP_KEY, userId, messages });
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      lastReadMessages: new Date(),
+    },
+  });
+
+  return json({ userId, messages });
 };
 
 export const action: ActionFunction = async ({ request }) => {
@@ -80,7 +87,7 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 export default function ChatPage() {
-  const { key, userId, messages: initialMessages } = useLoaderData();
+  const { userId, messages: initialMessages } = useLoaderData();
   const actionData = useActionData<ActionData>();
 
   const [messages, setMessages] = useState(initialMessages);
@@ -91,7 +98,8 @@ export default function ChatPage() {
   let isSubmitting = transition.submission;
 
   useEffect(() => {
-    const pusher = new Pusher(key, {
+    // @ts-ignore
+    const pusher = new Pusher(window.ENV.PUSHER_APP_KEY, {
       cluster: "eu",
       forceTLS: true,
     });
