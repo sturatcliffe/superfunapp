@@ -13,7 +13,6 @@ import { requireUserId } from "~/services/session.server";
 import { pusher } from "~/services/pusher.server";
 
 import Input from "~/components/Input";
-import Header from "~/components/Header";
 import Gravatar from "~/components/Gravatar";
 
 type ActionData = {
@@ -127,8 +126,7 @@ export default function ChatPage() {
   }, [isSubmitting]);
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50">
-      <Header />
+    <>
       <ul
         ref={messagesRef}
         className="flex flex-grow flex-col items-start overflow-y-scroll p-4"
@@ -181,6 +179,6 @@ export default function ChatPage() {
           placeholder="Hit enter to send..."
         />
       </Form>
-    </div>
+    </>
   );
 }

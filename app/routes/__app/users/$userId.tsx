@@ -117,7 +117,7 @@ export default function UserDetailsPage() {
   const actionData = useActionData<ActionData>();
 
   return (
-    <div className="pb-4">
+    <div className="overflow-hidden pb-4">
       <AddNewItemForm errors={actionData?.errors} />
       <WatchList items={items} currentUserId={userId} />
     </div>
