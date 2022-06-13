@@ -5,7 +5,9 @@ export default function AppLayout() {
   return (
     <div className="flex h-screen flex-col">
       <Header />
-      <Outlet className="flex-grow" />
+      <div className="flex-grow">
+        <Outlet />
+      </div>
     </div>
   );
 }
