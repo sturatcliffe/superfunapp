@@ -3,9 +3,9 @@ import type { LoaderFunction } from "remix";
 
 import { requireUser } from "~/services/session.server";
 import { getUsers } from "~/models/user.server";
-import { Md5 } from "md5-typescript";
 
 import Header from "~/components/Header";
+import Gravatar from "~/components/Gravatar";
 
 type LoaderData = {
   userListItems: Awaited<ReturnType<typeof getUsers>>;
@@ -41,12 +41,10 @@ export default function UsersPage() {
                   }
                   to={`${user.id}`}
                 >
-                  <img
-                    className="mr-4 rounded-full"
-                    src={`https://www.gravatar.com/avatar/${Md5.init(
-                      user.email
-                    )}?s=30&d=retro`}
-                    alt={user.name ?? user.email}
+                  <Gravatar
+                    name={user.name}
+                    email={user.email}
+                    className="mr-4"
                   />
                   {user.name}
                 </NavLink>
