@@ -24,8 +24,14 @@ export const meta: MetaFunction = () => ({
   viewport: "width=device-width,initial-scale=1",
 });
 
+type ENV = {
+  PUSHER_APP_KEY: string | undefined;
+};
+
 type LoaderData = {
+  ENV: ENV;
   user: Awaited<ReturnType<typeof getUser>>;
+  unreadMessageCount: number | undefined;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
