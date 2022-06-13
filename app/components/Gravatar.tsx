@@ -3,7 +3,7 @@ import { Md5 } from "md5-typescript";
 
 interface Props {
   size?: number;
-  name: string;
+  name?: string | null;
   email: string;
 }
 
