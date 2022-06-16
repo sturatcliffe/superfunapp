@@ -19,14 +19,14 @@ const WatchList: FC<Props> = ({ items, currentUserId }) => {
     <>
       {hasWatchedItems && (
         <div className="flex justify-end">
-          <div className="form-check p-4">
+          <div className="form-check flex items-center p-4">
             <input
               className="form-check-input float-left mt-1 mr-2 h-4 w-4 cursor-pointer appearance-none rounded-sm border border-gray-300 bg-white bg-contain bg-center bg-no-repeat align-top transition duration-200 checked:border-blue-600 checked:bg-blue-600 focus:outline-none"
               onChange={() => setShowAll(!showAll)}
               type="checkbox"
             />
             <label
-              className="form-check-label inline-block text-gray-800"
+              className="form-check-label inline-block text-sm text-gray-800 md:text-base"
               htmlFor="showAll"
             >
               Include watched items

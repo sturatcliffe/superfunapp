@@ -65,7 +65,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="flex h-screen flex-col">
+      <body className="flex h-screen w-screen flex-col overflow-x-hidden">
         <Outlet />
         <script
           dangerouslySetInnerHTML={{

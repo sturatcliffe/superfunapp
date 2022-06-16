@@ -23,16 +23,16 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
     isSubmitting || item.watched || item.userId != currentUserId;
 
   return (
-    <div className="mt-8 mb-8 flex">
-      <div className="mr-4 flex-shrink-0">
+    <div className="mt-8 mb-16 flex flex-col items-center md:my-8 md:flex-row md:items-stretch">
+      <div className="mb-4 flex-shrink-0 md:mb-0 md:mr-4">
         <img className="w-48" alt={item.title} src={item.image} />
       </div>
       <div className="flex flex-col">
-        <div className="flex w-full">
+        <div className="flex">
           <a
             href={item.url}
             target="_blank"
-            className="w-full text-lg font-bold transition hover:text-slate-600 hover:underline"
+            className="text-md w-full font-bold transition hover:text-slate-600 hover:underline md:text-lg"
           >
             {item.title}
           </a>
@@ -54,9 +54,11 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
             </div>
           )}
         </div>
-        <p className="mt-1 flex-1">{item.description}</p>
-        <div className="flex items-center justify-between">
-          <span className="text-sm italic text-gray-700">
+        <p className="mt-4 flex-1 text-sm md:mt-1 md:text-base">
+          {item.description}
+        </p>
+        <div className="mt-4 flex items-center justify-between md:mt-0">
+          <span className="text-xs italic text-gray-700 md:text-sm">
             Added by:{" "}
             <span className="font-semibold">
               {item.createdBy.id === currentUserId
@@ -76,7 +78,7 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
               type="submit"
               className={`${item.watched ? "bg-green-600" : "bg-pink-600"} ${
                 markAsWatchedDisabled ? "cursor-not-allowed opacity-60" : ""
-              } mt-auto block rounded-full py-1 px-2 text-sm text-white`}
+              } mt-auto block rounded-full py-1 px-2 text-xs text-white md:text-sm`}
               disabled={markAsWatchedDisabled}
             >
               {item.watched ? "Watched" : "Mark as Watched"}
