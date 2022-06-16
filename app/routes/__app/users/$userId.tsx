@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Transition } from "@headlessui/react";
 import { LoaderFunction, ActionFunction, useTransition } from "remix";
 import { json, useLoaderData, useCatch, useActionData } from "remix";
@@ -120,7 +120,7 @@ export default function UserDetailsPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const transition = useTransition();
 
-  const [isMainFormVisible, setIsMainFormVisible] = useState(true);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   const CREATE_ACTION = "create";
 
@@ -129,27 +129,20 @@ export default function UserDetailsPage() {
 
   let usersOutletElem: HTMLElement | null;
 
-  if (typeof window !== "undefined") {
+  const handleScroll = () => {
+    if (usersOutletElem?.scrollTop === 0) {
+      setHasScrolled(false);
+      inputRef.current?.focus();
+    } else {
+      setHasScrolled(true);
+    }
+  };
+
+  useEffect(() => {
     usersOutletElem = document.getElementById("users_outlet");
-
-    const observer = useMemo(
-      () =>
-        new IntersectionObserver(([entry]) => {
-          setIsMainFormVisible(entry.isIntersecting);
-        }),
-      []
-    );
-
-    useEffect(() => {
-      if (inputRef.current) {
-        observer.observe(inputRef.current);
-      }
-
-      return () => {
-        observer.disconnect();
-      };
-    }, [inputRef, observer]);
-  }
+    usersOutletElem?.addEventListener("scroll", handleScroll);
+    return () => usersOutletElem?.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (actionData?.errors?.url) {
@@ -163,25 +156,13 @@ export default function UserDetailsPage() {
     }
   }, [actionData, isSubmitting]);
 
-  useEffect(() => {
-    const focusInput = () => {
-      if (usersOutletElem?.scrollTop === 0) {
-        inputRef.current?.focus();
-      }
-    };
-
-    usersOutletElem?.addEventListener("scroll", focusInput);
-
-    return () => usersOutletElem?.removeEventListener("scroll", focusInput);
-  }, []);
-
   return (
     <div className="pb-4">
       <AddNewItemForm ref={inputRef} errors={actionData?.errors} />
       <WatchList items={items} currentUserId={userId} />
       <Transition
         as={Fragment}
-        show={!isMainFormVisible}
+        show={hasScrolled}
         enter="transition-opacity duration-75"
         enterFrom="opacity-0"
         enterTo="opacity-100"
@@ -191,7 +172,9 @@ export default function UserDetailsPage() {
       >
         <button
           onClick={() =>
-            usersOutletElem?.scrollTo({ top: 0, behavior: "smooth" })
+            document
+              .getElementById("users_outlet")
+              ?.scrollTo({ top: 0, behavior: "smooth" })
           }
           className="fixed bottom-5 right-8 ml-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 p-4 text-white"
         >
