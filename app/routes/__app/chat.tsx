@@ -126,10 +126,10 @@ export default function ChatPage() {
   }, [isSubmitting]);
 
   return (
-    <>
+    <div className="flex h-full flex-col">
       <ul
         ref={messagesRef}
-        className="flex flex-grow flex-col items-start overflow-y-scroll p-4"
+        className="flex flex-1 flex-col items-start overflow-auto p-4"
       >
         {messages.length === 0 && (
           <li className="rounded bg-teal-500 px-4 py-2 text-white">
@@ -179,6 +179,6 @@ export default function ChatPage() {
           placeholder="Hit enter to send..."
         />
       </Form>
-    </>
+    </div>
   );
 }

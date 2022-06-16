@@ -25,7 +25,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 export default function UsersPage() {
   const data = useLoaderData<LoaderData>();
   return (
-    <main className="flex flex-grow overflow-hidden bg-white">
+    <main className="flex h-full bg-white">
       <div className="w-80 border-r bg-gray-50">
         <ol>
           {data.userListItems.map((user) => (
@@ -50,7 +50,7 @@ export default function UsersPage() {
         </ol>
       </div>
 
-      <div className="flex-1 overflow-y-scroll p-6">
+      <div id="users_outlet" className="flex-1 overflow-auto p-6">
         <Outlet />
       </div>
     </main>
