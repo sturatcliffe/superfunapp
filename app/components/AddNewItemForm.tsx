@@ -29,7 +29,6 @@ const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
               ref={ref}
               name="url"
               placeholder="Enter an IMDB URL..."
-              className="w-full flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
               aria-invalid={errors?.url ? true : undefined}
               aria-errormessage={errors?.url ? "url-error" : undefined}
             />
