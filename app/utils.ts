@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useMatches } from "remix";
+import { useMatches, json } from "remix";
 
 import type { User } from "~/models/user.server";
 
@@ -48,4 +48,10 @@ export function validateEmail(email: unknown): email is string {
 
 export function validatePassword(password: FormDataEntryValue | null): boolean {
   return typeof password === "string" && password.length >= 8;
+}
+
+export function validateApiKey(request: Request) {
+  if (request.headers.get("X-Api-Key") !== process.env.API_KEY) {
+    throw json({ message: "Invalid API Key" }, { status: 401 });
+  }
 }
