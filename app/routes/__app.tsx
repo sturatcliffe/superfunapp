@@ -3,11 +3,11 @@ import Header from "~/components/Header";
 
 export default function AppLayout() {
   return (
-    <div className="flex h-screen flex-col">
+    <>
       <Header />
-      <div className="flex-grow">
+      <div className="flex-1 overflow-auto">
         <Outlet />
       </div>
-    </div>
+    </>
   );
 }

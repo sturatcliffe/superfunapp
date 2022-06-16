@@ -1,4 +1,6 @@
-import type { LoaderFunction, ActionFunction } from "remix";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Transition } from "@headlessui/react";
+import { LoaderFunction, ActionFunction, useTransition } from "remix";
 import { json, useLoaderData, useCatch, useActionData } from "remix";
 import invariant from "tiny-invariant";
 
@@ -115,11 +117,87 @@ export const action: ActionFunction = async ({ request, params }) => {
 export default function UserDetailsPage() {
   const { items, userId } = useLoaderData<LoaderData>();
   const actionData = useActionData<ActionData>();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const transition = useTransition();
+
+  const [isMainFormVisible, setIsMainFormVisible] = useState(true);
+
+  const CREATE_ACTION = "create";
+
+  let isSubmitting =
+    transition.submission?.formData.get("action") === CREATE_ACTION;
+
+  let usersOutletElem: HTMLElement | null;
+
+  if (typeof window !== "undefined") {
+    usersOutletElem = document.getElementById("users_outlet");
+
+    const observer = useMemo(
+      () =>
+        new IntersectionObserver(([entry]) => {
+          setIsMainFormVisible(entry.isIntersecting);
+        }),
+      []
+    );
+
+    useEffect(() => {
+      if (inputRef.current) {
+        observer.observe(inputRef.current);
+      }
+
+      return () => {
+        observer.disconnect();
+      };
+    }, [inputRef, observer]);
+  }
+
+  useEffect(() => {
+    if (actionData?.errors?.url) {
+      inputRef.current?.focus();
+    }
+    if (!isSubmitting && !actionData?.errors) {
+      if (inputRef.current) {
+        inputRef.current.value = "";
+        inputRef.current.focus();
+      }
+    }
+  }, [actionData, isSubmitting]);
+
+  useEffect(() => {
+    const focusInput = () => {
+      if (usersOutletElem?.scrollTop === 0) {
+        inputRef.current?.focus();
+      }
+    };
+
+    usersOutletElem?.addEventListener("scroll", focusInput);
+
+    return () => usersOutletElem?.removeEventListener("scroll", focusInput);
+  }, []);
 
   return (
-    <div className="overflow-hidden pb-4">
-      <AddNewItemForm errors={actionData?.errors} />
+    <div className="pb-4">
+      <AddNewItemForm ref={inputRef} errors={actionData?.errors} />
       <WatchList items={items} currentUserId={userId} />
+      <Transition
+        as={Fragment}
+        show={!isMainFormVisible}
+        enter="transition-opacity duration-75"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leave="transition-opacity duration-150"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <button
+          onClick={() =>
+            usersOutletElem?.scrollTo({ top: 0, behavior: "smooth" })
+          }
+          className="fixed bottom-5 right-8 ml-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 p-4 text-white"
+        >
+          +
+        </button>
+      </Transition>
     </div>
   );
 }
