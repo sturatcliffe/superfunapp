@@ -15,7 +15,10 @@ import { prisma } from "./services/db.server";
 import { useLoaderData } from "@remix-run/react";
 
 export const links: LinksFunction = () => {
-  return [{ rel: "stylesheet", href: tailwindStylesheetUrl }];
+  return [
+    { rel: "manifest", href: "/manifest.json" },
+    { rel: "stylesheet", href: tailwindStylesheetUrl },
+  ];
 };
 
 export const meta: MetaFunction = () => ({
