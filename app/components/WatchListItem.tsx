@@ -23,8 +23,8 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
     isSubmitting || item.watched || item.userId != currentUserId;
 
   return (
-    <div className="mt-8 mb-16 flex flex-col items-center md:my-8 md:flex-row md:items-stretch">
-      <div className="mb-4 flex-shrink-0 md:mb-0 md:mr-4">
+    <div className="mt-8 mb-16 flex flex-col items-center lg:my-8 lg:flex-row lg:items-stretch">
+      <div className="mb-4 flex-shrink-0 lg:mb-0 lg:mr-4">
         <img className="w-48" alt={item.title} src={item.image} />
       </div>
       <div className="flex flex-col">
@@ -54,10 +54,10 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
             </div>
           )}
         </div>
-        <p className="mt-4 flex-1 text-sm md:mt-1 md:text-base">
+        <p className="mt-4 flex-1 text-sm md:text-base lg:mt-1">
           {item.description}
         </p>
-        <div className="mt-4 flex items-center justify-between md:mt-0">
+        <div className="mt-4 flex items-center justify-between lg:mt-0">
           <span className="text-xs italic text-gray-700 md:text-sm">
             Added by:{" "}
             <span className="font-semibold">

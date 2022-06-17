@@ -47,6 +47,7 @@ export default function UsersPage() {
                   }`
                 }
                 to={`${user.id}`}
+                onClick={() => setOpen(false)}
               >
                 <Gravatar
                   name={user.name}
