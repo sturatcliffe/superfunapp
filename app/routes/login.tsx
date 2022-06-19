@@ -67,7 +67,8 @@ export const action: ActionFunction = async ({ request }) => {
     request,
     userId: user.id,
     remember: remember === "on" ? true : false,
-    redirectTo: typeof redirectTo === "string" ? redirectTo : "/users",
+    redirectTo:
+      typeof redirectTo === "string" ? redirectTo : `/users/${user.id}`,
   });
 };
 
@@ -79,7 +80,7 @@ export const meta: MetaFunction = () => {
 
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/users";
+  const redirectTo = searchParams.get("redirectTo") || "";
   const actionData = useActionData() as ActionData;
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);

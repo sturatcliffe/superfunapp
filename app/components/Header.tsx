@@ -10,7 +10,6 @@ export default function Header() {
   const data = useMatchesData("root");
   let location = useLocation();
 
-  const [menuOpen, setMenuOpen] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(
     (data?.unreadMessageCount as number) > 0 ?? false
   );
@@ -40,7 +39,7 @@ export default function Header() {
   return (
     <header className="flex items-center justify-between bg-slate-800 p-4 text-white">
       <h1 className="text-md font-bold md:text-3xl">
-        <Link to="/users">SuperFunApp</Link>
+        <Link to={`/users/${user.id}`}>SuperFunApp</Link>
       </h1>
       <Link to="/profile" className="text-sm md:text-base">
         {user.email}

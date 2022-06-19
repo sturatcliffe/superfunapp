@@ -1,7 +1,7 @@
 {
   "name": "SuperFunApp",
   "short_name": "SuperFunApp",
-  "start_url": "/users",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#5900b3",
   "theme_color": "black",
