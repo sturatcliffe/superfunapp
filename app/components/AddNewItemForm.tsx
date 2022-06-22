@@ -1,37 +1,87 @@
-import { forwardRef } from "react";
-import { Form, useTransition } from "remix";
+import { forwardRef, useEffect, useRef, useState } from "react";
+import { Form, useSubmit, useTransition } from "remix";
 
+import { SEARCH_ACTION, CREATE_ACTION } from "../routes/__app/users/$userId";
 import Input from "./Input";
+
+import type { SearchResult } from "~/services/imdb.server";
 
 export interface Fields {
   url?: string;
 }
 
 interface Props {
+  results?: SearchResult[];
   errors?: Fields;
 }
 
-const CREATE_ACTION = "create";
-
 const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
-  ({ errors }, ref) => {
+  ({ results: resultsProp, errors }, ref) => {
+    const submit = useSubmit();
     const transition = useTransition();
 
-    let isSubmitting =
-      transition.submission?.formData.get("action") === CREATE_ACTION;
+    const [results, setResults] = useState<SearchResult[]>([]);
+
+    const formRef = useRef<HTMLFormElement | null>(null);
+
+    let isSubmitting = [SEARCH_ACTION, CREATE_ACTION].includes(
+      (transition.submission?.formData.get("action") as string) ?? ""
+    );
+
+    useEffect(() => {
+      const handleClickAway = (e: any) => {
+        if (formRef.current && !formRef.current.contains(e.target)) {
+          setResults([]);
+        }
+      };
+
+      document.addEventListener("mousedown", handleClickAway);
+
+      return () => {
+        document.removeEventListener("mousedown", handleClickAway);
+      };
+    }, []);
+
+    useEffect(() => {
+      if (resultsProp && resultsProp.length > 0) {
+        setResults(resultsProp);
+      }
+    }, [resultsProp]);
 
     return (
-      <Form method="post">
-        <input type="hidden" name="action" value={CREATE_ACTION}></input>
+      <Form ref={formRef} method="post">
+        <input type="hidden" name="action" value={SEARCH_ACTION}></input>
         <fieldset className="flex" disabled={isSubmitting}>
-          <div className="w-full">
+          <div className="relative w-full">
             <Input
               ref={ref}
-              name="url"
-              placeholder="Enter an IMDB URL..."
+              name="q"
+              placeholder="Search for a title..."
               aria-invalid={errors?.url ? true : undefined}
               aria-errormessage={errors?.url ? "url-error" : undefined}
             />
+            {!isSubmitting && results.length > 0 && (
+              <ul className="absolute left-0 right-0 mt-1 max-h-60 divide-y divide-dashed overflow-y-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+                {results.map((item) => (
+                  <li key={item.url} className="p-2 hover:bg-blue-300">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData();
+                        formData.set("action", CREATE_ACTION);
+                        formData.set("url", item.url);
+
+                        submit(formData, { method: "post" });
+                      }}
+                      className="flex items-center"
+                    >
+                      <img src={item.image} alt={item.title} className="mr-2" />
+                      {item.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <button
             type="submit"
@@ -61,10 +111,10 @@ const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                <span>Saving...</span>
+                <span>Searching...</span>
               </span>
             ) : (
-              "Save"
+              "Search"
             )}
           </button>
         </fieldset>
