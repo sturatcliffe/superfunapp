@@ -3,6 +3,7 @@ import { Transition } from "@headlessui/react";
 import { LoaderFunction, ActionFunction, useTransition } from "remix";
 import { json, useLoaderData, useCatch, useActionData } from "remix";
 import invariant from "tiny-invariant";
+import { ArrowUpIcon } from "@heroicons/react/outline";
 
 import {
   getWatchlistItems,
@@ -221,9 +222,9 @@ export default function UserDetailsPage() {
         show={hasScrolled}
         enter="transition-opacity duration-75"
         enterFrom="opacity-0"
-        enterTo="opacity-100"
+        enterTo="opacity-75"
         leave="transition-opacity duration-150"
-        leaveFrom="opacity-100"
+        leaveFrom="opacity-75"
         leaveTo="opacity-0"
       >
         <button
@@ -232,9 +233,9 @@ export default function UserDetailsPage() {
               .getElementById("users_outlet")
               ?.scrollTo({ top: 0, behavior: "smooth" })
           }
-          className="fixed bottom-5 right-8 ml-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 p-4 text-white"
+          className="fixed bottom-5 right-8 ml-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 p-4 text-white transition ease-in-out hover:opacity-100"
         >
-          +
+          <ArrowUpIcon className="h-5 w-5" />
         </button>
       </Transition>
     </div>
