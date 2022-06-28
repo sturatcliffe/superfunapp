@@ -27,7 +27,7 @@ jobs:
           ORG_NAME: ${{secrets.PLANETSCALE_ORG_NAME}}
           DB_NAME: ${{secrets.PLANETSCALE_DB_NAME}}
           GITHUB_USER: ${{github.actor}}
-          BRANCH_NAME: ${{ github.base_ref }}
+          BRANCH_NAME: ${{ github.head_ref }}
         working-directory: ${{env.pscale_base_directory}}/
         run: |
           ./validate-deploy-request.sh "$BRANCH_NAME"
