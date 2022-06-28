@@ -18,7 +18,6 @@ jobs:
 
       - name: Validate deploy request
         id: validate_deploy_request
-        timeout_minutes: 3
         env:
           PLANETSCALE_SERVICE_TOKEN_ID: ${{secrets.PLANETSCALE_SERVICE_TOKEN_ID}}
           PLANETSCALE_SERVICE_TOKEN: ${{secrets.PLANETSCALE_SERVICE_TOKEN}}
