@@ -6,6 +6,8 @@
 
 branch=$1
 
+echo "Looking for open deploy requests for branch: $branch..."
+
 raw_output=`pscale deploy-request --org "$ORG_NAME" list $DB_NAME --format json`
 output=`echo $raw_output | jq ".[] | select(.branch == \"$branch\" and .state == \"open\") | .deployment.deployable"`
 
