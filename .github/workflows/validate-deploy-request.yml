@@ -26,6 +26,7 @@ jobs:
           PLANETSCALE_SERVICE_TOKEN: ${{secrets.PLANETSCALE_SERVICE_TOKEN}}
           ORG_NAME: ${{secrets.PLANETSCALE_ORG_NAME}}
           DB_NAME: ${{secrets.PLANETSCALE_DB_NAME}}
+          GITHUB_USER: ${{github.actor}}
           BRANCH_NAME: ${{ github.event.inputs.branch }}
         working-directory: ${{env.pscale_base_directory}}/
         run: |
