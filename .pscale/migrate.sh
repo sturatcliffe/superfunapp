@@ -1,23 +1,22 @@
 #!/bin/bash
 
-# Copy the env variables into local ones so it's easy to replace them with test values for debugging
-DB_HOST=$DATABASE_HOST
-DB_USER=$DATABASE_USER
-DB_PW=$DATABASE_PW
-DB_NAME=$DATABASE_NAME
+DB_HOST="localhost" #$DATABASE_HOST
+DB_USER="root" #$DATABASE_USER
+DB_PW="P3Pt1of4*" #$DATABASE_PW
+DB_NAME="superfunapp" #$DATABASE_NAME
 
 migrations=$(ls ../migrations)
 
 for file in $migrations; do
-    exists=$(mysql --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "SELECT 1 FROM migration WHERE filename = '$file';")
+    exists=$(mysql.exe --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "SELECT 1 FROM migration WHERE filename = '$file';")
     if [ -z "$exists" ];
     then
         echo "$file has not been run yet, running..."
-        contents=`cat ./migrations/$file`
-        mysql --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "$contents"
+        contents=`cat ../migrations/$file`
+        mysql.exe --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "$contents"
         if [ $? = 0 ]
         then
-            mysql --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "INSERT INTO migration (filename) VALUES('$file');"
+            mysql.exe --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "INSERT INTO migration (filename) VALUES('$file');"
         else
             echo "$file failed to run..."
         fi
