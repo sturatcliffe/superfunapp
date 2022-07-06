@@ -9,6 +9,11 @@ generator client {
   previewFeatures = ["referentialIntegrity"]
 }
 
+model Migration {
+  filename          String      @id
+  timestamp         DateTime    @default(now())
+}
+
 model User {
   id                Int         @id       @default(autoincrement())
   email             String      @unique

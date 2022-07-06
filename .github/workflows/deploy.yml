@@ -164,6 +164,27 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
+  migrate:
+    name: Migrate
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: 🚚 Migrate
+        id: migrate
+        uses: shogo82148/actions-setup-mysql@v1
+        with:
+          mysql-version: "8.0"
+        env:
+          DATABASE_HOST: ${{secrets.PLANETSCALE_DB_HOST}}
+          DATABASE_USER: ${{secrets.PLANETSCALE_DB_USER}}
+          DATABASE_PW: ${{secrets.PLANETSCALE_DB_PW}}
+          DATABASE_NAME: ${{secrets.PLANETSCALE_DB_NAME}}
+        working-directory: .pscale/
+        run: |
+          ./migrate.sh
+
   deploy:
     name: 🚀 Deploy
     runs-on: ubuntu-latest
