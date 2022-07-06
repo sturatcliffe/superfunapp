@@ -22,6 +22,7 @@ import type { Fields } from "~/components/AddNewItemForm";
 import AddNewItemForm from "~/components/AddNewItemForm";
 import { searchImdb, scrapeImdbData } from "~/services/imdb.server";
 import type { SearchResult } from "~/services/imdb.server";
+import { WatchStatus } from "@prisma/client";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
@@ -134,8 +135,9 @@ const handleUpdateWatchStatus = async (
     const status = formData.get("status");
 
     if (!itemId) throw new Error("Must specify the item to mark as watched");
+    if (!status) throw new Error("Must specify new status");
 
-    await markAsWatched(parseInt(itemId as string), status);
+    await markAsWatched(parseInt(itemId as string), status as WatchStatus);
   }
   return json({});
 };
