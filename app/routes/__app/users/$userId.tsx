@@ -37,7 +37,7 @@ type ActionData = {
 export const SEARCH_ACTION = "search";
 export const CREATE_ACTION = "create";
 export const DELETE_ACTION = "delete";
-export const MARK_AS_WATCHED_ACTION = "markAsWatched";
+export const UPDATE_WATCH_STATUS_ACTION = "UpdateWatchStatus";
 
 const handleSearch = async (formData: FormData) => {
   const q = formData.get("q") as string | undefined;
@@ -124,17 +124,18 @@ const handleDelete = async (formData: FormData, currentUserId: number) => {
   return json<ActionData>({ deleted: true });
 };
 
-const handleMarkAsWatched = async (
+const handleUpdateWatchStatus = async (
   formData: FormData,
   userId: number,
   currentUser: User
 ) => {
   if (currentUser.id === userId) {
     const itemId = formData.get("itemId");
+    const status = formData.get("status");
 
     if (!itemId) throw new Error("Must specify the item to mark as watched");
 
-    await markAsWatched(parseInt(itemId as string));
+    await markAsWatched(parseInt(itemId as string), status);
   }
   return json({});
 };
@@ -153,6 +154,7 @@ export const action: ActionFunction = async ({ request, params }) => {
   const formData = await request.formData();
   const action = formData.get("action");
 
+  console.log("Action: ", action);
   switch (action) {
     case SEARCH_ACTION:
       return handleSearch(formData);
@@ -160,8 +162,12 @@ export const action: ActionFunction = async ({ request, params }) => {
       return await handleCreate(formData, parseInt(params.userId), user);
     case DELETE_ACTION:
       return await handleDelete(formData, user.id);
-    case MARK_AS_WATCHED_ACTION:
-      return await handleMarkAsWatched(formData, parseInt(params.userId), user);
+    case UPDATE_WATCH_STATUS_ACTION:
+      return await handleUpdateWatchStatus(
+        formData,
+        parseInt(params.userId),
+        user
+      );
     default:
       throw new Error("Invalid action.");
   }

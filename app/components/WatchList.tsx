@@ -1,3 +1,4 @@
+import { WatchStatus } from "@prisma/client";
 import { FC, useState } from "react";
 
 import type { WatchListItems } from "~/models/item.server";
@@ -12,8 +13,10 @@ interface Props {
 const WatchList: FC<Props> = ({ items, currentUserId }) => {
   const [showAll, setShowAll] = useState(false);
 
-  let hasWatchedItems = items.some((x) => x.watched);
-  let itemsToShow = showAll ? items : items.filter((x) => !x.watched);
+  let hasWatchedItems = items.some((x) => x.status === WatchStatus.Watched);
+  let itemsToShow = showAll
+    ? items
+    : items.filter((x) => x.status != WatchStatus.Watched);
 
   return (
     <>
