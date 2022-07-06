@@ -1,1 +1,0 @@
-insert into User (name, email, updatedAt) values ('Fred', 'fred@flintstone.io', now());
