@@ -173,9 +173,9 @@ jobs:
 
       - name: 🚚 Migrate
         id: migrate
-        uses: shogo82148/actions-setup-mysql@v1
-        with:
-          mysql-version: "8.0"
+        # uses: shogo82148/actions-setup-mysql@v1
+        # with:
+        #   mysql-version: "8.0"
         env:
           DATABASE_HOST: ${{secrets.PLANETSCALE_DB_HOST}}
           DATABASE_USER: ${{secrets.PLANETSCALE_DB_USER}}
