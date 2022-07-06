@@ -8,7 +8,7 @@ DB_NAME=$DATABASE_NAME
 migrations=$(ls ../migrations)
 
 for file in $migrations; do
-    exists=$(mysql --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "SELECT 1 FROM migration WHERE filename = '$file';")
+    exists=$(mysql --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "SELECT 1 FROM Migration WHERE filename = '$file';")
     if [ -z "$exists" ];
     then
         echo "$file has not been run yet, running..."
@@ -16,7 +16,7 @@ for file in $migrations; do
         mysql --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "$contents"
         if [ $? = 0 ]
         then
-            mysql --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "INSERT INTO migration (filename) VALUES('$file');"
+            mysql --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "INSERT INTO Migration (filename) VALUES('$file');"
         else
             echo "$file failed to run..."
         fi
