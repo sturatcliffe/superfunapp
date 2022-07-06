@@ -37,7 +37,6 @@ model Item {
   title       String @db.Text
   description String @db.Text
   image       String @db.Text
-  watched     Boolean? @default(false)
   status      WatchStatus @default(Unwatched)
   
   createdAt DateTime @default(now())
