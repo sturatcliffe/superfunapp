@@ -82,8 +82,7 @@ export function markAsWatched(id: number, status: WatchStatus) {
       id,
     },
     data: {
-      watched: true,
-      status: status,
+      status,
     },
   });
 }
