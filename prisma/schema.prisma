@@ -38,6 +38,7 @@ model Item {
   description String @db.Text
   image       String @db.Text
   watched     Boolean? @default(false)
+  status      WatchStatus @default(Unwatched)
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,5 +59,11 @@ model Message {
 
   user        User  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId      Int
+}
+
+enum WatchStatus{
+  Unwatched
+  Watched
+  Watching
 }
 
