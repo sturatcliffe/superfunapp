@@ -6,7 +6,7 @@ DB_USER=$DATABASE_USER
 DB_PW=$DATABASE_PW
 DB_NAME=$DATABASE_NAME
 
-migrations=$(ls migrations)
+migrations=$(ls ../migrations)
 
 for file in $migrations; do
     exists=$(mysql --host="$DB_HOST" --user="$DB_USER" --password="$DB_PW" --database="$DB_NAME" -sN -e "SELECT 1 FROM migration WHERE filename = '$file';")
