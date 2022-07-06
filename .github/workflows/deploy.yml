@@ -164,13 +164,6 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-  migrate:
-    name: Migrate
-    runs-on: ubuntu-latest
-    steps:
-      - name: ⬇️ Checkout repo
-        uses: actions/checkout@v3
-
   deploy:
     name: 🚀 Deploy
     runs-on: ubuntu-latest
