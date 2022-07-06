@@ -1,0 +1,33 @@
+name: 👀 Validate deploy request
+
+env:
+  pscale_base_directory: .pscale
+
+on:
+  pull_request: {}
+
+jobs:
+  validate_deploy_request:
+    name: Validate deploy request
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔎 Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]${GITHUB_REF#refs/heads/}"
+        id: extract_branch
+
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: 👀 Validate deploy request
+        id: validate_deploy_request
+        env:
+          PLANETSCALE_SERVICE_TOKEN_ID: ${{secrets.PLANETSCALE_SERVICE_TOKEN_ID}}
+          PLANETSCALE_SERVICE_TOKEN: ${{secrets.PLANETSCALE_SERVICE_TOKEN}}
+          ORG_NAME: ${{secrets.PLANETSCALE_ORG_NAME}}
+          DB_NAME: ${{secrets.PLANETSCALE_DB_NAME}}
+          GITHUB_USER: ${{github.actor}}
+          BRANCH_NAME: ${{ github.head_ref }}
+        working-directory: ${{env.pscale_base_directory}}/
+        run: |
+          ./validate-deploy-request.sh "$BRANCH_NAME"

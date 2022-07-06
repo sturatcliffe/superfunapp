@@ -3,6 +3,7 @@ import { Transition } from "@headlessui/react";
 import { LoaderFunction, ActionFunction, useTransition } from "remix";
 import { json, useLoaderData, useCatch, useActionData } from "remix";
 import invariant from "tiny-invariant";
+import { ArrowUpIcon } from "@heroicons/react/outline";
 
 import {
   getWatchlistItems,
@@ -11,6 +12,7 @@ import {
   deleteItem,
 } from "~/models/item.server";
 import { getUserById } from "~/models/user.server";
+import type { User } from "~/models/user.server";
 
 import { requireUser, requireUserId } from "~/services/session.server";
 import { sendMail } from "~/services/email.server";
@@ -18,7 +20,9 @@ import { sendMail } from "~/services/email.server";
 import WatchList from "~/components/WatchList";
 import type { Fields } from "~/components/AddNewItemForm";
 import AddNewItemForm from "~/components/AddNewItemForm";
-import { scrapeImdbData } from "~/services/imdb.server";
+import { searchImdb, scrapeImdbData } from "~/services/imdb.server";
+import type { SearchResult } from "~/services/imdb.server";
+import { WatchStatus } from "@prisma/client";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
@@ -26,8 +30,116 @@ type LoaderData = {
 };
 
 type ActionData = {
+  results?: SearchResult[];
   errors?: Fields;
   deleted?: boolean;
+};
+
+export const SEARCH_ACTION = "search";
+export const CREATE_ACTION = "create";
+export const DELETE_ACTION = "delete";
+export const UPDATE_WATCH_STATUS_ACTION = "UpdateWatchStatus";
+
+const handleSearch = async (formData: FormData) => {
+  const q = formData.get("q") as string | undefined;
+
+  if (typeof q !== "string") {
+    return json<ActionData>(
+      { errors: { url: "You must enter a search term" } },
+      { status: 400 }
+    );
+  }
+
+  const results = await searchImdb(q as string);
+  return json<ActionData>({ results });
+};
+
+const handleCreate = async (
+  formData: FormData,
+  userId: number,
+  currentUser: User
+) => {
+  const url = formData.get("url") as string | undefined;
+
+  if (
+    typeof url !== "string" ||
+    !url.startsWith("https://www.imdb.com/title/")
+  ) {
+    return json<ActionData>(
+      { errors: { url: "You must enter a valid IMDB URL" } },
+      { status: 400 }
+    );
+  }
+
+  const { title, description, image } = await scrapeImdbData(url);
+
+  if (
+    typeof title !== "string" ||
+    typeof description !== "string" ||
+    typeof image !== "string"
+  ) {
+    return json<ActionData>(
+      { errors: { url: "Failed to scrape data from that URL." } },
+      { status: 400 }
+    );
+  }
+
+  await upsertItem({
+    title,
+    description,
+    url,
+    image,
+    userId,
+    createdById: currentUser.id,
+  });
+
+  if (currentUser.id != userId) {
+    const otherUser = await getUserById(userId);
+    if (otherUser) {
+      const body = `
+        <p>Hello${otherUser.name ? ` ${otherUser.name}` : ""},</p>
+        <p>${
+          currentUser.name ?? currentUser.email
+        } has just added <b>${title}</b> to your watchlist!</p>
+        <p>Toodles!</p>
+      `;
+
+      await sendMail(
+        otherUser.name ?? otherUser.email,
+        otherUser.email,
+        "SuperFunApp: A new item has been added to your watchlist!",
+        body
+      );
+    }
+  }
+
+  return json({});
+};
+
+const handleDelete = async (formData: FormData, currentUserId: number) => {
+  const itemId = formData.get("itemId");
+
+  if (!itemId) throw new Error("Must specify the item to delete");
+
+  await deleteItem({ id: parseInt(itemId as string), userId: currentUserId });
+  return json<ActionData>({ deleted: true });
+};
+
+const handleUpdateWatchStatus = async (
+  formData: FormData,
+  userId: number,
+  currentUser: User
+) => {
+  if (currentUser.id === userId) {
+    const itemId = formData.get("itemId");
+    const status = formData.get("status");
+
+    if (!itemId) throw new Error("Must specify the item to mark as watched");
+    if (!status) throw new Error("Must specify new status");
+
+    await markAsWatched(parseInt(itemId as string), status as WatchStatus);
+  }
+  return json({});
 };
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -40,78 +152,27 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 export const action: ActionFunction = async ({ request, params }) => {
   invariant(params.userId, "userId not found");
-
   const user = await requireUser(request);
   const formData = await request.formData();
-  const url = formData.get("url") as string | undefined;
-  const action = formData.get("action") as string;
-  const itemId = formData.get("itemId") as string;
-  const userId = await requireUserId(request);
+  const action = formData.get("action");
 
-  const MARK_AS_WATCHED_ACTION = "markAsWatched";
-  if (action === "create") {
-    if (
-      typeof url !== "string" ||
-      !url.startsWith("https://www.imdb.com/title/")
-    ) {
-      return json<ActionData>(
-        { errors: { url: "You must enter a valid IMDB URL" } },
-        { status: 400 }
+  console.log("Action: ", action);
+  switch (action) {
+    case SEARCH_ACTION:
+      return handleSearch(formData);
+    case CREATE_ACTION:
+      return await handleCreate(formData, parseInt(params.userId), user);
+    case DELETE_ACTION:
+      return await handleDelete(formData, user.id);
+    case UPDATE_WATCH_STATUS_ACTION:
+      return await handleUpdateWatchStatus(
+        formData,
+        parseInt(params.userId),
+        user
       );
-    }
-
-    const { title, description, image } = await scrapeImdbData(url);
-
-    if (
-      typeof title !== "string" ||
-      typeof description !== "string" ||
-      typeof image !== "string"
-    ) {
-      return json<ActionData>(
-        { errors: { url: "Failed to scrape data from that URL." } },
-        { status: 400 }
-      );
-    }
-
-    await upsertItem({
-      title,
-      description,
-      url,
-      image,
-      userId: parseInt(params.userId),
-      createdById: user.id,
-    });
-
-    if (user.id != parseInt(params.userId)) {
-      const otherUser = await getUserById(parseInt(params.userId));
-      if (otherUser) {
-        const body = `
-          <p>Hello${otherUser.name ? ` ${otherUser.name}` : ""},</p>
-          <p>${
-            user.name ?? user.email
-          } has just added <b>${title}</b> to your watchlist!</p>
-          <p>Toodles!</p>
-        `;
-
-        await sendMail(
-          otherUser.name ?? otherUser.email,
-          otherUser.email,
-          "SuperFunApp: A new item has been added to your watchlist!",
-          body
-        );
-      }
-    }
-  } else if (action === "delete") {
-    await deleteItem({ id: parseInt(itemId), userId });
-    return json<ActionData>({ deleted: true });
-  } else if (
-    action === MARK_AS_WATCHED_ACTION &&
-    user.id === parseInt(params.userId)
-  ) {
-    await markAsWatched(parseInt(itemId));
+    default:
+      throw new Error("Invalid action.");
   }
-
-  return json({});
 };
 
 export default function UserDetailsPage() {
@@ -158,16 +219,20 @@ export default function UserDetailsPage() {
 
   return (
     <div className="pb-4">
-      <AddNewItemForm ref={inputRef} errors={actionData?.errors} />
+      <AddNewItemForm
+        ref={inputRef}
+        results={actionData?.results}
+        errors={actionData?.errors}
+      />
       <WatchList items={items} currentUserId={userId} />
       <Transition
         as={Fragment}
         show={hasScrolled}
         enter="transition-opacity duration-75"
         enterFrom="opacity-0"
-        enterTo="opacity-100"
+        enterTo="opacity-75"
         leave="transition-opacity duration-150"
-        leaveFrom="opacity-100"
+        leaveFrom="opacity-75"
         leaveTo="opacity-0"
       >
         <button
@@ -176,9 +241,9 @@ export default function UserDetailsPage() {
               .getElementById("users_outlet")
               ?.scrollTo({ top: 0, behavior: "smooth" })
           }
-          className="fixed bottom-5 right-8 ml-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 p-4 text-white"
+          className="fixed bottom-5 right-8 ml-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 p-4 text-white transition ease-in-out hover:opacity-100"
         >
-          +
+          <ArrowUpIcon className="h-5 w-5" />
         </button>
       </Transition>
     </div>

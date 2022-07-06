@@ -3,8 +3,8 @@
   "short_name": "SuperFunApp",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#5900b3",
-  "theme_color": "black",
+  "background_color": "#1e293b",
+  "theme_color": "#1e293b",
   "scope": ".",
   "description": "SuperFunApp",
   "icons": [

@@ -1,4 +1,4 @@
-import type { User, Item } from "@prisma/client";
+import type { User, Item, WatchStatus } from "@prisma/client";
 
 import { prisma } from "~/services/db.server";
 
@@ -16,6 +16,7 @@ export function getWatchlistItems({ userId }: { userId: User["id"] }) {
       image: true,
       watched: true,
       userId: true,
+      status: true,
       createdBy: {
         select: {
           id: true,
@@ -76,13 +77,14 @@ export function deleteItem({
   });
 }
 
-export function markAsWatched(id: number) {
+export function markAsWatched(id: number, status: WatchStatus) {
   return prisma.item.update({
     where: {
       id,
     },
     data: {
       watched: true,
+      status: status,
     },
   });
 }
