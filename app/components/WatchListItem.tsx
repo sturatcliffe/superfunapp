@@ -1,16 +1,11 @@
 import { FC, useState } from "react";
-import { Form, useTransition } from "remix";
-import {
-  ArrowDownIcon,
-  ChevronDownIcon,
-  TrashIcon,
-} from "@heroicons/react/outline";
+import { useFetcher } from "remix";
+import { ChevronDownIcon, TrashIcon } from "@heroicons/react/outline";
 
 import type { WatchListItems } from "~/models/item.server";
-import ConfirmModal from "./ConfirmModal";
 import { WatchStatus } from "~/enum/WatchStatus";
-import { UPDATE_WATCH_STATUS_ACTION } from "~/routes/__app/users/$userId";
-import LoadingSpinner from "./LoadingSpinner";
+
+import ConfirmModal from "./ConfirmModal";
 
 interface Props {
   item: WatchListItems[number];
@@ -18,15 +13,12 @@ interface Props {
 }
 
 const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
-  const transition = useTransition();
+  const fetcher = useFetcher();
   const [showModal, setShowModal] = useState(false);
 
-  let isSubmitting =
-    transition.submission?.formData.get("action") ===
-      UPDATE_WATCH_STATUS_ACTION &&
-    parseInt(
-      (transition.submission?.formData.get("itemId") as string) ?? "0"
-    ) === item.id;
+  let status =
+    (fetcher.submission?.formData.get("status") as unknown as WatchStatus) ??
+    item.status;
 
   return (
     <div className="mt-8 mb-16 flex flex-col items-center lg:my-8 lg:flex-row lg:items-stretch">
@@ -42,7 +34,7 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
           >
             {item.title}
           </a>
-          {item.status.toString() === WatchStatus[WatchStatus.Unwatched] &&
+          {status.toString() === WatchStatus[WatchStatus.Unwatched] &&
             item.userId == currentUserId && (
               <div className="flex justify-end">
                 <TrashIcon
@@ -80,75 +72,66 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
               <button
                 className={`inline-flex items-center rounded py-2 px-4 font-semibold text-white
               ${
-                item.status.toString() == WatchStatus[WatchStatus.Watching]
+                status.toString() == WatchStatus[WatchStatus.Watching]
                   ? "bg-yellow-400"
-                  : item.status.toString() == WatchStatus[WatchStatus.Watched]
+                  : status.toString() == WatchStatus[WatchStatus.Watched]
                   ? "bg-green-400"
                   : "bg-red-400"
               }`}
               >
-                {isSubmitting && <LoadingSpinner className="mr-2 h-4 w-4" />}
-                <span className="mr-1">{item.status}</span>
+                <span className="mr-1">{status}</span>
                 <ChevronDownIcon className="h-4 w-4" />
               </button>
               <ul className="absolute mb-2 hidden w-full pt-1 text-gray-700 group-hover:block">
-                <Form method="post">
+                <fetcher.Form method="post">
                   <input type="hidden" name="itemId" value={item.id}></input>
                   <input
                     type="hidden"
                     name="action"
                     value="UpdateWatchStatus"
                   ></input>
-                  {item.status.toString() !==
-                    WatchStatus[WatchStatus.Unwatched] && (
+                  {status.toString() !== WatchStatus[WatchStatus.Unwatched] && (
                     <li>
                       <button
-                        className={`whitespace-no-wrap block w-full rounded-t bg-gray-200 py-2 px-4 hover:bg-red-400 hover:text-white
-                        ${isSubmitting ? "cursor-not-allowed" : ""}`}
+                        className="whitespace-no-wrap block w-full rounded-t bg-gray-200 py-2 px-4 hover:bg-red-400 hover:text-white"
                         type="submit"
                         name="status"
                         value={WatchStatus[WatchStatus.Unwatched]}
-                        disabled={isSubmitting}
                       >
                         {WatchStatus[WatchStatus.Unwatched]}
                       </button>
                     </li>
                   )}
-                  {item.status.toString() !==
-                    WatchStatus[WatchStatus.Watching] && (
+                  {status.toString() !== WatchStatus[WatchStatus.Watching] && (
                     <li>
                       <button
                         className={`whitespace-no-wrap block w-full bg-gray-200 py-2 px-4 hover:bg-yellow-400 hover:text-white
-                        ${isSubmitting ? "cursor-not-allowed" : ""} ${
-                          item.status.toString() === "Watched"
+                        ${
+                          status.toString() === "Watched"
                             ? "rounded-b"
                             : "rounded-t"
                         }`}
                         type="submit"
                         name="status"
                         value={WatchStatus[WatchStatus.Watching]}
-                        disabled={isSubmitting}
                       >
                         {WatchStatus[WatchStatus.Watching]}
                       </button>
                     </li>
                   )}
-                  {item.status.toString() !==
-                    WatchStatus[WatchStatus.Watched] && (
+                  {status.toString() !== WatchStatus[WatchStatus.Watched] && (
                     <li>
                       <button
-                        className={`whitespace-no-wrap block w-full rounded-b bg-gray-200 py-2 px-4 hover:bg-green-400 hover:text-white 
-                        ${isSubmitting ? "cursor-not-allowed" : ""}`}
+                        className="whitespace-no-wrap block w-full rounded-b bg-gray-200 py-2 px-4 hover:bg-green-400 hover:text-white"
                         type="submit"
                         name="status"
                         value={WatchStatus[WatchStatus.Watched]}
-                        disabled={isSubmitting}
                       >
                         {WatchStatus[WatchStatus.Watched]}
                       </button>
                     </li>
                   )}
-                </Form>
+                </fetcher.Form>
               </ul>
             </div>
           </div>
