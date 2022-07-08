@@ -181,6 +181,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 export default function UserDetailsPage() {
   const { items, userId } = useLoaderData<LoaderData>();
   const actionData = useActionData<ActionData>();
+  const pageRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const transition = useTransition();
 
@@ -190,23 +191,6 @@ export default function UserDetailsPage() {
 
   let isSubmitting =
     transition.submission?.formData.get("action") === CREATE_ACTION;
-
-  let usersOutletElem: HTMLElement | null;
-
-  const handleScroll = () => {
-    if (usersOutletElem?.scrollTop === 0) {
-      setHasScrolled(false);
-      inputRef.current?.focus();
-    } else {
-      setHasScrolled(true);
-    }
-  };
-
-  useEffect(() => {
-    usersOutletElem = document.getElementById("users_outlet");
-    usersOutletElem?.addEventListener("scroll", handleScroll);
-    return () => usersOutletElem?.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     if (actionData?.errors?.url) {
@@ -220,8 +204,24 @@ export default function UserDetailsPage() {
     }
   }, [actionData, isSubmitting]);
 
+  const handleScroll = () => {
+    if (pageRef.current?.scrollTop === 0) {
+      setHasScrolled(false);
+    } else {
+      setHasScrolled(true);
+    }
+  };
+
+  useEffect(() => {
+    if (pageRef.current) {
+      let elem = pageRef.current;
+      elem.addEventListener("scroll", handleScroll);
+      return () => elem.removeEventListener("scroll", handleScroll);
+    }
+  }, []);
+
   return (
-    <div className="pb-4">
+    <div ref={pageRef} className="flex-1 px-6 pt-6 pb-10 md:overflow-auto">
       <AddNewItemForm
         ref={inputRef}
         results={actionData?.results}
@@ -239,11 +239,14 @@ export default function UserDetailsPage() {
         leaveTo="opacity-0"
       >
         <button
-          onClick={() =>
-            document
-              .getElementById("users_outlet")
-              ?.scrollTo({ top: 0, behavior: "smooth" })
-          }
+          onClick={() => {
+            pageRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+            //this is dirty, but saves us using document query selectors etc,
+            //and stops the search box focusing on mobile everytime the page resets to the top
+            setTimeout(() => {
+              inputRef.current?.focus();
+            }, 750);
+          }}
           className="fixed bottom-5 right-8 ml-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 p-4 text-white transition ease-in-out hover:opacity-100"
         >
           <ArrowUpIcon className="h-5 w-5" />

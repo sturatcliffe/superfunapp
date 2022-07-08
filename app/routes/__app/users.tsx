@@ -61,9 +61,7 @@ export default function UsersPage() {
         </ol>
       </div>
 
-      <div id="users_outlet" className="flex-1 p-6 md:overflow-auto">
-        <Outlet />
-      </div>
+      <Outlet />
     </main>
   );
 }

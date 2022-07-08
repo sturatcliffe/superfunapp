@@ -123,7 +123,7 @@ export default function ChatPage() {
         inputRef.current.focus();
       }
     }
-  }, [isSubmitting]);
+  }, [isSubmitting, actionData?.errors]);
 
   return (
     <div className="flex h-full flex-col">

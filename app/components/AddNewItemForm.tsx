@@ -86,6 +86,7 @@ const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
                   >
                     <a
                       target="_blank"
+                      rel="noreferrer"
                       href={item.url}
                       className="flex items-center"
                     >
@@ -120,5 +121,7 @@ const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
     );
   }
 );
+
+AddNewItemForm.displayName = "AddNewItemForm";
 
 export default AddNewItemForm;

@@ -11,4 +11,6 @@ const Input = forwardRef(({ submitBtn, ...props }: any, ref: any) => (
   </div>
 ));
 
+Input.displayName = "Input";
+
 export default Input;

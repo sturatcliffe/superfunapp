@@ -30,6 +30,7 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
           <a
             href={item.url}
             target="_blank"
+            rel="noreferrer"
             className="text-md w-full font-bold transition hover:text-slate-600 hover:underline md:text-lg"
           >
             {item.title}
