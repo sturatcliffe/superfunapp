@@ -204,7 +204,7 @@ export default function UserDetailsPage() {
     }
   }, [actionData, isSubmitting]);
 
-  const handleScroll = () => {
+  const handleScroll = (e: any) => {
     if (pageRef.current?.scrollTop === 0) {
       setHasScrolled(false);
     } else {
@@ -213,11 +213,9 @@ export default function UserDetailsPage() {
   };
 
   useEffect(() => {
-    if (pageRef.current) {
-      let elem = pageRef.current;
-      elem.addEventListener("scroll", handleScroll);
-      return () => elem.removeEventListener("scroll", handleScroll);
-    }
+    let elem = pageRef.current;
+    elem?.addEventListener("scroll", handleScroll);
+    return () => elem?.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
