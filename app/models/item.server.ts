@@ -28,19 +28,20 @@ export function getWatchlistItems({ userId }: { userId: User["id"] }) {
 }
 
 export async function upsertItem({
+  tt,
   title,
   description,
   url,
   image,
   userId,
   createdById,
-}: Pick<Item, "title" | "description" | "url" | "image"> & {
+}: Pick<Item, "tt" | "title" | "description" | "url" | "image"> & {
   userId: User["id"];
   createdById: User["id"];
 }) {
   const existingItem = await prisma.item.findFirst({
     where: {
-      title,
+      tt,
       userId,
     },
   });
@@ -48,6 +49,7 @@ export async function upsertItem({
   if (!existingItem) {
     return prisma.item.create({
       data: {
+        tt,
         title,
         description,
         url,

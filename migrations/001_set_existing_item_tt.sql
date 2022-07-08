@@ -1,0 +1,1 @@
+UPDATE Item SET tt = SUBSTRING_INDEX(SUBSTRING_INDEX(url, '/', 5), '/', -1);

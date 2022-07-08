@@ -71,9 +71,11 @@ const handleCreate = async (
     );
   }
 
-  const { title, description, image } = await scrapeImdbData(url);
+  const { tt, title, description, image } = await scrapeImdbData(url);
 
   if (
+    typeof tt !== "string" ||
+    !tt.startsWith("tt") ||
     typeof title !== "string" ||
     typeof description !== "string" ||
     typeof image !== "string"
@@ -85,6 +87,7 @@ const handleCreate = async (
   }
 
   await upsertItem({
+    tt,
     title,
     description,
     url,

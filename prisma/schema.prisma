@@ -39,6 +39,7 @@ model Password {
 model Item {
   id          Int @id @default(autoincrement())
   url         String @db.Text
+  tt          String? @db.Text
   title       String @db.Text
   description String @db.Text
   image       String @db.Text
