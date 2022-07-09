@@ -40,11 +40,7 @@ export default function Header() {
     <header className="flex items-center justify-between bg-slate-800 p-4 text-white">
       <h1>
         <Link to={`/users/${user.id}`}>
-          <img
-            className="w-24 md:w-48"
-            src="/logo_transparent.png"
-            alt="SuperFunApp"
-          />
+          <img className="w-24 md:w-48" src="/logo.png" alt="SuperFunApp" />
         </Link>
       </h1>
       <Link to="/profile" className="text-sm md:text-base">
