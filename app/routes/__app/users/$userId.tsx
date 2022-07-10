@@ -215,7 +215,11 @@ export default function UserDetailsPage() {
   useEffect(() => {
     let elem = pageRef.current;
     elem?.addEventListener("scroll", handleScroll);
-    return () => elem?.removeEventListener("scroll", handleScroll);
+    elem?.addEventListener("touchmove", handleScroll);
+    return () => {
+      elem?.removeEventListener("scroll", handleScroll);
+      elem?.removeEventListener("touchmove", handleScroll);
+    };
   }, []);
 
   return (
