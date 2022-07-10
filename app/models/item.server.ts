@@ -5,6 +5,43 @@ import { prisma } from "~/services/db.server";
 export type WatchListItems = Awaited<ReturnType<typeof getWatchlistItems>>;
 export type { Item } from "@prisma/client";
 
+export function getMostPopularItems() {
+  return prisma.item.groupBy({
+    by: ["tt", "url", "image", "title"],
+    _count: {
+      tt: true,
+    },
+    orderBy: [
+      {
+        _count: {
+          tt: "desc",
+        },
+      },
+      {
+        _max: {
+          createdAt: "desc",
+        },
+      },
+    ],
+    take: 4,
+  });
+}
+
+export function getMostRecentItems() {
+  return prisma.item.findMany({
+    select: {
+      image: true,
+      title: true,
+      url: true,
+    },
+    distinct: ["tt"],
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 4,
+  });
+}
+
 export function getWatchlistItems({ userId }: { userId: User["id"] }) {
   return prisma.item.findMany({
     where: { userId },
