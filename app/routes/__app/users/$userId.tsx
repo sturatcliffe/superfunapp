@@ -204,7 +204,7 @@ export default function UserDetailsPage() {
     }
   }, [actionData, isSubmitting]);
 
-  const handleScroll = (e: any) => {
+  const handleScroll = () => {
     if (pageRef.current?.scrollTop === 0) {
       setHasScrolled(false);
     } else {
@@ -212,18 +212,12 @@ export default function UserDetailsPage() {
     }
   };
 
-  useEffect(() => {
-    let elem = pageRef.current;
-    elem?.addEventListener("scroll", handleScroll);
-    elem?.addEventListener("touchmove", handleScroll);
-    return () => {
-      elem?.removeEventListener("scroll", handleScroll);
-      elem?.removeEventListener("touchmove", handleScroll);
-    };
-  }, []);
-
   return (
-    <div ref={pageRef} className="flex-1 px-6 pt-6 pb-10 md:overflow-auto">
+    <div
+      ref={pageRef}
+      onScroll={handleScroll}
+      className="flex-1 px-6 pt-6 pb-10 md:overflow-auto"
+    >
       <AddNewItemForm
         ref={inputRef}
         results={actionData?.results}
