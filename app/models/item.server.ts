@@ -1,4 +1,4 @@
-import type { User, Item, WatchStatus } from "@prisma/client";
+import { User, Item, WatchStatus } from "@prisma/client";
 
 import { prisma } from "~/services/db.server";
 
@@ -10,6 +10,30 @@ export function getMostPopularItems() {
     by: ["tt", "url", "image", "title"],
     _count: {
       tt: true,
+    },
+    orderBy: [
+      {
+        _count: {
+          tt: "desc",
+        },
+      },
+      {
+        _max: {
+          createdAt: "desc",
+        },
+      },
+    ],
+    take: 4,
+  });
+}
+
+export function getMostWatchedItems() {
+  return prisma.item.groupBy({
+    by: ["tt", "url", "image", "title"],
+    where: {
+      status: {
+        in: [WatchStatus["Watched"]],
+      },
     },
     orderBy: [
       {
