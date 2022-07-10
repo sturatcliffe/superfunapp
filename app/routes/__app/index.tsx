@@ -38,8 +38,8 @@ export default function IndexPage() {
     items: LoaderData["popular"] | LoaderData["watched"] | LoaderData["recent"];
   }) => (
     <ul className="-mx-4 mb-16 flex flex-wrap items-center md:flex-nowrap">
-      {items.map((item) => (
-        <li className="mb-4 w-1/2 px-4 md:w-auto">
+      {items.map((item, index) => (
+        <li key={index} className="mb-4 w-1/2 px-4 md:w-auto">
           <a target="_blank" rel="noreferrer" href={item.url}>
             <img src={item.image} alt={item.title} />
           </a>
