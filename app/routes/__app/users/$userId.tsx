@@ -215,8 +215,7 @@ export default function UserDetailsPage() {
   return (
     <div
       ref={pageRef}
-      onScroll={() => alert("Scroll")}
-      onTouchMove={() => alert("Touch move")}
+      onScroll={handleScroll}
       className="flex-1 px-6 pt-6 pb-10 md:overflow-auto"
     >
       <AddNewItemForm
