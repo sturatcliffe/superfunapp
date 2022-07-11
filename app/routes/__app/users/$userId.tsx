@@ -212,11 +212,20 @@ export default function UserDetailsPage() {
     }
   };
 
+  // really hacky fix for android mobile browsers which don't fire the scroll event without this crap
+  useEffect(() => {
+    if (pageRef.current) {
+      pageRef.current.style.overflow = "hidden";
+      pageRef.current.scrollTop = 0;
+      pageRef.current.style.overflow = "auto";
+    }
+  }, []);
+
   return (
     <div
       ref={pageRef}
       onScroll={handleScroll}
-      className="flex-1 px-6 pt-6 pb-10 md:overflow-auto"
+      className="flex-1 px-6 pt-6 pb-10"
     >
       <AddNewItemForm
         ref={inputRef}
@@ -237,11 +246,6 @@ export default function UserDetailsPage() {
         <button
           onClick={() => {
             pageRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-            //this is dirty, but saves us using document query selectors etc,
-            //and stops the search box focusing on mobile everytime the page resets to the top
-            setTimeout(() => {
-              inputRef.current?.focus();
-            }, 750);
           }}
           className="fixed bottom-5 right-8 ml-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 p-4 text-white transition ease-in-out hover:opacity-100"
         >
