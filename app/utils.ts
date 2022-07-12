@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useMatches, json } from "remix";
+import { SchemaOf } from "yup";
 
 import type { User } from "~/models/user.server";
 
@@ -14,7 +15,7 @@ export function useMatchesData(
 ): Record<string, unknown> | undefined {
   const matchingRoutes = useMatches();
   const route = useMemo(
-    () => matchingRoutes.find((route) => route.id === id),
+    () => matchingRoutes.find((route: any) => route.id === id),
     [matchingRoutes, id]
   );
   return route?.data;
@@ -53,5 +54,35 @@ export function validatePassword(password: FormDataEntryValue | null): boolean {
 export function validateApiKey(request: Request) {
   if (request.headers.get("X-Api-Key") !== process.env.API_KEY) {
     throw json({ message: "Invalid API Key" }, { status: 401 });
+  }
+}
+
+export async function validateFormData<T>(
+  formData: FormData,
+  schema: SchemaOf<T>
+): Promise<{ data: T; errors: any | null }> {
+  const form = Object.fromEntries(formData);
+  const parsedFormData = schema.cast(form);
+
+  try {
+    const data = (await schema.validate(parsedFormData, {
+      strict: true,
+      abortEarly: false,
+    })) as T;
+
+    return {
+      data,
+      errors: null,
+    };
+  } catch (err: any) {
+    let errors = new Map();
+    err.inner.map((error: any) => {
+      errors.set(error.path, error.message);
+    });
+
+    return {
+      data: parsedFormData as T,
+      errors: Object.fromEntries(errors),
+    };
   }
 }

@@ -17,7 +17,8 @@ model Migration {
 model User {
   id                Int         @id       @default(autoincrement())
   email             String      @unique
-  name              String?
+  name              String
+  phone             String?
   lastReadMessages  DateTime?
   
   createdAt         DateTime    @default(now())
@@ -27,6 +28,29 @@ model User {
   items             Item[]      @relation(name: "Watchlist")
   createdItems      Item[]      @relation(name: "CreatedItems")
   messages          Message[]
+  preferences       NotificationPreference[]
+}
+
+model NotificationPreference {
+  user              User                  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId            Int
+
+  method            NotificationMethod
+  event             NotificationEvent
+  enabled           Boolean               @default(false)
+
+  @@id([userId, method, event])
+}
+
+enum NotificationMethod {
+  Email
+  SMS
+}
+
+enum NotificationEvent {
+  Watchlist
+  Chat
+  Users
 }
 
 model Password {

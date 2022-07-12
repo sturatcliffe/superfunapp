@@ -1,4 +1,9 @@
-import type { Password, User } from "@prisma/client";
+import {
+  NotificationEvent,
+  NotificationMethod,
+  Password,
+  User,
+} from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "~/services/db.server";
@@ -12,7 +17,12 @@ export async function getUsers() {
 }
 
 export async function getUserById(id: User["id"]) {
-  return prisma.user.findUnique({ where: { id } });
+  return prisma.user.findUnique({
+    where: { id },
+    include: {
+      preferences: true,
+    },
+  });
 }
 
 export async function getUserByEmail(email: User["email"]) {
@@ -43,13 +53,144 @@ export async function deleteUserByEmail(email: User["email"]) {
   return prisma.user.delete({ where: { email } });
 }
 
-export async function updateUserName(id: User["id"], username: string) {
+export async function updateProfile(
+  id: User["id"],
+  name: User["name"],
+  email: User["email"],
+  phone: User["phone"],
+  watchlistEmail: boolean,
+  chatEmail: boolean,
+  usersEmail: boolean,
+  watchlistSms: boolean,
+  chatSms: boolean,
+  usersSms: boolean
+) {
   return prisma.user.update({
     where: {
       id: id,
     },
     data: {
-      name: username,
+      name,
+      email,
+      phone,
+      preferences: {
+        upsert: [
+          {
+            where: {
+              userId_method_event: {
+                userId: id,
+                event: NotificationEvent["Watchlist"],
+                method: NotificationMethod["Email"],
+              },
+            },
+            create: {
+              event: NotificationEvent["Watchlist"],
+              method: NotificationMethod["Email"],
+              enabled: watchlistEmail,
+            },
+            update: {
+              event: NotificationEvent["Watchlist"],
+              method: NotificationMethod["Email"],
+              enabled: watchlistEmail,
+            },
+          },
+          {
+            where: {
+              userId_method_event: {
+                userId: id,
+                event: NotificationEvent["Chat"],
+                method: NotificationMethod["Email"],
+              },
+            },
+            create: {
+              event: NotificationEvent["Chat"],
+              method: NotificationMethod["Email"],
+              enabled: chatEmail,
+            },
+            update: {
+              event: NotificationEvent["Chat"],
+              method: NotificationMethod["Email"],
+              enabled: chatEmail,
+            },
+          },
+          {
+            where: {
+              userId_method_event: {
+                userId: id,
+                event: NotificationEvent["Users"],
+                method: NotificationMethod["Email"],
+              },
+            },
+            create: {
+              event: NotificationEvent["Users"],
+              method: NotificationMethod["Email"],
+              enabled: usersEmail,
+            },
+            update: {
+              event: NotificationEvent["Users"],
+              method: NotificationMethod["Email"],
+              enabled: usersEmail,
+            },
+          },
+          {
+            where: {
+              userId_method_event: {
+                userId: id,
+                event: NotificationEvent["Watchlist"],
+                method: NotificationMethod["SMS"],
+              },
+            },
+            create: {
+              event: NotificationEvent["Watchlist"],
+              method: NotificationMethod["SMS"],
+              enabled: watchlistSms,
+            },
+            update: {
+              event: NotificationEvent["Watchlist"],
+              method: NotificationMethod["SMS"],
+              enabled: watchlistSms,
+            },
+          },
+          {
+            where: {
+              userId_method_event: {
+                userId: id,
+                event: NotificationEvent["Chat"],
+                method: NotificationMethod["SMS"],
+              },
+            },
+            create: {
+              event: NotificationEvent["Chat"],
+              method: NotificationMethod["SMS"],
+              enabled: chatSms,
+            },
+            update: {
+              event: NotificationEvent["Chat"],
+              method: NotificationMethod["SMS"],
+              enabled: chatSms,
+            },
+          },
+          {
+            where: {
+              userId_method_event: {
+                userId: id,
+                event: NotificationEvent["Users"],
+                method: NotificationMethod["SMS"],
+              },
+            },
+            create: {
+              event: NotificationEvent["Users"],
+              method: NotificationMethod["SMS"],
+              enabled: usersSms,
+            },
+            update: {
+              event: NotificationEvent["Users"],
+              method: NotificationMethod["SMS"],
+              enabled: usersSms,
+            },
+          },
+        ],
+      },
     },
   });
 }
