@@ -1,5 +1,19 @@
 import { prisma } from "~/services/db.server";
 
+export function createNotification(
+  userId: number,
+  message: string,
+  href: string
+) {
+  return prisma.notification.create({
+    data: {
+      userId,
+      message,
+      href,
+    },
+  });
+}
+
 export function getUnreadNotificationsByUserId(userId: number) {
   return prisma.notification.findMany({
     where: {

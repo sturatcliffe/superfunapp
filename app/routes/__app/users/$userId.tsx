@@ -11,6 +11,7 @@ import {
   markAsWatched,
   deleteItem,
 } from "~/models/item.server";
+import { createNotification } from "~/models/notification.server";
 import { getUserById } from "~/models/user.server";
 import type { User } from "~/models/user.server";
 
@@ -112,6 +113,12 @@ const handleCreate = async (
         otherUser.email,
         "SuperFunApp: A new item has been added to your watchlist!",
         body
+      );
+
+      await createNotification(
+        userId,
+        `${currentUser.name} added a new item to your list!`,
+        `/users/${userId}`
       );
     }
   }
