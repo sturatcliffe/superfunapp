@@ -23,7 +23,11 @@ import type { Fields } from "~/components/AddNewItemForm";
 import AddNewItemForm from "~/components/AddNewItemForm";
 import { searchImdb, scrapeImdbData } from "~/services/imdb.server";
 import type { SearchResult } from "~/services/imdb.server";
-import { WatchStatus } from "@prisma/client";
+import {
+  NotificationEvent,
+  NotificationMethod,
+  WatchStatus,
+} from "@prisma/client";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
@@ -58,7 +62,8 @@ const handleSearch = async (formData: FormData) => {
 const handleCreate = async (
   formData: FormData,
   userId: number,
-  currentUser: User
+  currentUser: User,
+  baseUrl: string
 ) => {
   const url = formData.get("url") as string | undefined;
 
@@ -99,12 +104,19 @@ const handleCreate = async (
 
   if (currentUser.id != userId) {
     const otherUser = await getUserById(userId);
-    if (otherUser) {
+    if (
+      otherUser?.preferences.find(
+        (x) =>
+          x.event === NotificationEvent["Watchlist"] &&
+          x.method === NotificationMethod["Email"]
+      )?.enabled
+    ) {
       const body = `
         <p>Hello${otherUser.name ? ` ${otherUser.name}` : ""},</p>
         <p>${
           currentUser.name ?? currentUser.email
         } has just added <b>${title}</b> to your watchlist!</p>
+        <p>Check it out <a href="${baseUrl}/users/${userId}">here</a>.</p>
         <p>Toodles!</p>
       `;
 
@@ -114,13 +126,23 @@ const handleCreate = async (
         "SuperFunApp: A new item has been added to your watchlist!",
         body
       );
-
-      await createNotification(
-        userId,
-        `${currentUser.name} added a new item to your list!`,
-        `/users/${userId}`
-      );
     }
+
+    if (
+      otherUser?.preferences.find(
+        (x) =>
+          x.event === NotificationEvent["Watchlist"] &&
+          x.method === NotificationMethod["SMS"]
+      )?.enabled
+    ) {
+      // TODO : send SMS notification to user
+    }
+
+    await createNotification(
+      userId,
+      `${currentUser.name} added a new item to your list!`,
+      `/users/${userId}`
+    );
   }
 
   return json({});
@@ -171,7 +193,12 @@ export const action: ActionFunction = async ({ request, params }) => {
     case SEARCH_ACTION:
       return handleSearch(formData);
     case CREATE_ACTION:
-      return await handleCreate(formData, parseInt(params.userId), user);
+      return await handleCreate(
+        formData,
+        parseInt(params.userId),
+        user,
+        new URL(request.url).origin
+      );
     case DELETE_ACTION:
       return await handleDelete(formData, user.id);
     case UPDATE_WATCH_STATUS_ACTION:
