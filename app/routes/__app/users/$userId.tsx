@@ -17,6 +17,7 @@ import type { User } from "~/models/user.server";
 
 import { requireUser, requireUserId } from "~/services/session.server";
 import { sendMail } from "~/services/email.server";
+import { sendSms } from "~/services/sms.server";
 
 import WatchList from "~/components/WatchList";
 import type { Fields } from "~/components/AddNewItemForm";
@@ -129,13 +130,17 @@ const handleCreate = async (
     }
 
     if (
+      otherUser?.phone &&
       otherUser?.preferences.find(
         (x) =>
           x.event === NotificationEvent["Watchlist"] &&
           x.method === NotificationMethod["SMS"]
       )?.enabled
     ) {
-      // TODO : send SMS notification to user
+      await sendSms(
+        `${currentUser.name} added a new item to your list! Check it out: ${baseUrl}/users/${userId}`,
+        otherUser.phone
+      );
     }
 
     await createNotification(
