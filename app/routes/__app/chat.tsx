@@ -5,8 +5,9 @@ import type {
   LoaderFunction,
   ShouldReloadFunction,
 } from "remix";
-import Pusher from "pusher-js";
 import { formatDistanceToNow } from "date-fns";
+
+import { usePusher } from "~/context/PusherContext";
 
 import { prisma } from "~/services/db.server";
 import { requireUserId } from "~/services/session.server";
@@ -89,25 +90,27 @@ export default function ChatPage() {
   const { userId, messages: initialMessages } = useLoaderData();
   const actionData = useActionData<ActionData>();
 
-  const [messages, setMessages] = useState(initialMessages);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesRef = useRef<HTMLUListElement>(null);
+
+  const [messages, setMessages] = useState(initialMessages);
+
   const transition = useTransition();
+  const pusher = usePusher();
 
   let isSubmitting = transition.submission;
 
   useEffect(() => {
-    // @ts-ignore
-    const pusher = new Pusher(window.ENV.PUSHER_APP_KEY, {
-      cluster: "eu",
-      forceTLS: true,
-    });
+    if (pusher) {
+      const channel = pusher.subscribe("chat");
 
-    const channel = pusher.subscribe("chat");
+      channel.bind("message", (data: any) => {
+        setMessages((prev: any) => [...prev, data]);
+      });
 
-    channel.bind("message", (data: any) => {
-      setMessages((prev: any) => [...prev, data]);
-    });
+      return () => pusher.unsubscribe("chat");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -126,7 +129,7 @@ export default function ChatPage() {
   }, [isSubmitting, actionData?.errors]);
 
   return (
-    <div className="mx-auto flex h-full max-w-5xl flex-col">
+    <div className="flex h-full flex-col">
       <ul
         ref={messagesRef}
         className="flex flex-1 flex-col items-start overflow-auto p-4"

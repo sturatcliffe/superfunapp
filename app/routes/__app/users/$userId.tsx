@@ -193,7 +193,6 @@ export const action: ActionFunction = async ({ request, params }) => {
   const formData = await request.formData();
   const action = formData.get("action");
 
-  console.log("Action: ", action);
   switch (action) {
     case SEARCH_ACTION:
       return handleSearch(formData);

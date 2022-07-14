@@ -2,9 +2,10 @@ import { Fragment, useEffect, useState } from "react";
 import { Link, Form, useLocation, useFetcher, useNavigate } from "remix";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { BellIcon, MenuIcon, XIcon, TrashIcon } from "@heroicons/react/outline";
-import { useMatchesData, useUser } from "~/utils";
 import { Notification } from "@prisma/client";
-import Pusher from "pusher-js";
+
+import { useMatchesData, useUser } from "~/utils";
+import { usePusher } from "~/context/PusherContext";
 
 import Gravatar from "./Gravatar";
 
@@ -24,39 +25,37 @@ export default function Header() {
   let location = useLocation();
   const fetcher = useFetcher();
   const navigate = useNavigate();
+  const pusher = usePusher();
 
   const [notifications, setNotifications] = useState(
     rootData?.notifications as Notification[]
   );
 
   useEffect(() => {
-    // @ts-ignore
-    const pusher = new Pusher(window?.ENV.PUSHER_APP_KEY, {
-      cluster: "eu",
-      forceTLS: true,
-    });
+    if (pusher) {
+      const channel = pusher.subscribe("chat");
 
-    const channel = pusher.subscribe("chat");
+      channel.bind("message", (data: any) => {
+        if (window?.location.pathname !== "/chat" ?? false) {
+          setNotifications((prev) => [
+            ...prev.filter((x) => x.id !== -1),
+            {
+              id: -1,
+              userId: user.id,
+              message: "New chat message received",
+              href: "/chat",
+              read: false,
+            },
+          ]);
+        }
+      });
 
-    channel.bind("message", (data: any) => {
-      if (window?.location.pathname !== "/chat" ?? false) {
-        setNotifications((prev) => [
-          ...prev.filter((x) => x.id !== -1),
-          {
-            id: -1,
-            userId: user.id,
-            message: "New chat message received",
-            href: "/chat",
-            read: false,
-          },
-        ]);
-      }
-    });
-
-    return () => {
-      pusher.unsubscribe("chat");
-    };
-  }, [user?.id]);
+      return () => {
+        pusher.unsubscribe("chat");
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (location.pathname === "/chat" ?? false) {
