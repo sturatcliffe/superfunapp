@@ -126,7 +126,7 @@ export default function ChatPage() {
   }, [isSubmitting, actionData?.errors]);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="mx-auto flex h-full max-w-5xl flex-col">
       <ul
         ref={messagesRef}
         className="flex flex-1 flex-col items-start overflow-auto p-4"

@@ -39,7 +39,7 @@ export default function IndexPage() {
   }) => (
     <ul className="-mx-4 mb-16 flex flex-wrap items-center md:flex-nowrap">
       {items.map((item, index) => (
-        <li key={index} className="mb-4 w-1/2 px-4 md:w-auto">
+        <li key={index} className="mb-4 w-1/2 px-4 md:w-1/4">
           <a target="_blank" rel="noreferrer" href={item.url}>
             <img src={item.image} alt={item.title} />
           </a>

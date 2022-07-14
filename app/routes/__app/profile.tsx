@@ -117,7 +117,7 @@ export default function ProfilePage() {
   return (
     <Form
       method="post"
-      className="mx-auto max-w-7xl space-y-6 divide-y divide-gray-200 px-4 pb-4"
+      className="mx-auto max-w-5xl space-y-6 divide-y divide-gray-200 px-4 pb-4"
     >
       <div className="space-y-6 pt-8 sm:space-y-5 sm:pt-10">
         <div>
