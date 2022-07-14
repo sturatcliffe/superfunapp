@@ -1,10 +1,11 @@
 import { Fragment, useEffect, useState } from "react";
-import { Link, Form, useLocation } from "remix";
+import { Link, Form, useLocation, useFetcher, useNavigate } from "remix";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
-import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
+import { BellIcon, MenuIcon, XIcon, TrashIcon } from "@heroicons/react/outline";
+import { useMatchesData, useUser } from "~/utils";
+import { Notification } from "@prisma/client";
 import Pusher from "pusher-js";
 
-import { useMatchesData, useUser } from "~/utils";
 import Gravatar from "./Gravatar";
 
 function classNames(...classes: any[]) {
@@ -19,11 +20,13 @@ const navigation = [
 
 export default function Header() {
   const user = useUser();
-  const data = useMatchesData("root");
+  const rootData = useMatchesData("root");
   let location = useLocation();
+  const fetcher = useFetcher();
+  const navigate = useNavigate();
 
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(
-    (data?.unreadMessageCount as number) > 0 ?? false
+  const [notifications, setNotifications] = useState(
+    rootData?.notifications as Notification[]
   );
 
   useEffect(() => {
@@ -36,17 +39,37 @@ export default function Header() {
     const channel = pusher.subscribe("chat");
 
     channel.bind("message", (data: any) => {
-      if (window?.location.pathname !== "/chat" ?? false) {
-        setHasUnreadMessages(true);
+      if (
+        (window?.location.pathname !== "/chat" ?? false) &&
+        notifications.every((x) => x.id > 0)
+      ) {
+        setNotifications((notifications) => [
+          ...notifications,
+          {
+            id: -1,
+            userId: user.id,
+            message: "New chat message received",
+            href: "/chat",
+            read: false,
+          },
+        ]);
       }
     });
   }, []);
 
   useEffect(() => {
     if (location.pathname === "/chat" ?? false) {
-      setHasUnreadMessages(false);
+      setNotifications((notifications) => [
+        ...notifications.filter((x) => x.id !== -1),
+      ]);
     }
   }, [location]);
+
+  useEffect(() => {
+    if (rootData) {
+      setNotifications(rootData.notifications as Notification[]);
+    }
+  }, [rootData]);
 
   return (
     <Disclosure as="header" className="bg-slate-800">
@@ -102,7 +125,7 @@ export default function Header() {
                   <Menu.Button className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none">
                     <span className="sr-only">View notifications</span>
                     <BellIcon className="h-6 w-6" aria-hidden="true" />
-                    {hasUnreadMessages && (
+                    {notifications.length > 0 && (
                       <span className="absolute top-0 right-0 flex h-1 w-1 md:h-2 md:w-2">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
                         <span className="relative inline-flex h-1 w-1 rounded-full bg-red-500 md:h-2 md:w-2"></span>
@@ -118,36 +141,90 @@ export default function Header() {
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                   >
-                    <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <Menu.Item>
-                        {({ active }) => (
+                    <Menu.Items className="absolute right-0 mt-2 w-72 origin-top-right rounded-md bg-white pt-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <>
+                        {notifications.length > 0 ? (
                           <>
-                            {hasUnreadMessages && (
-                              <Link
-                                to="/chat"
-                                className={classNames(
-                                  active ? "bg-gray-100" : "",
-                                  "block px-4 py-2 text-sm text-gray-700"
-                                )}
-                              >
-                                You have {data?.unreadMessageCount} unread chat
-                                messages
-                              </Link>
-                            )}
-                            {!hasUnreadMessages && (
-                              <Link
-                                to={location.pathname}
+                            {notifications.map((notification, index) => {
+                              const markAsRead = () => {
+                                if (notification.id > 0) {
+                                  const data = new FormData();
+                                  data.set("id", notification.id.toString());
+                                  data.set("_action", "single");
+
+                                  fetcher.submit(data, {
+                                    method: "post",
+                                    action: "/notification",
+                                  });
+                                }
+                              };
+
+                              return (
+                                <Menu.Item key={index}>
+                                  {({ active }) => (
+                                    <div
+                                      className={classNames(
+                                        active ? "bg-gray-100" : "",
+                                        "flex items-center justify-between px-4 py-2 text-sm text-gray-700"
+                                      )}
+                                    >
+                                      <button
+                                        className="text-left"
+                                        onClick={() => {
+                                          markAsRead();
+                                          navigate(notification.href);
+                                        }}
+                                      >
+                                        {notification.message}
+                                      </button>
+                                      <button onClick={() => markAsRead()}>
+                                        <XIcon className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </Menu.Item>
+                              );
+                            })}
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  className={classNames(
+                                    active
+                                      ? "bg-red-100 text-red-500"
+                                      : "bg-gray-100 text-gray-400",
+                                    "flex w-full items-center justify-center rounded-b-md px-4 py-2 text-left text-xs"
+                                  )}
+                                  onClick={() => {
+                                    const data = new FormData();
+                                    data.set("_action", "all");
+
+                                    fetcher.submit(data, {
+                                      method: "post",
+                                      action: "/notification",
+                                    });
+                                  }}
+                                >
+                                  <TrashIcon className="mr-2 h-4 w-4" />
+                                  Clear all
+                                </button>
+                              )}
+                            </Menu.Item>
+                          </>
+                        ) : (
+                          <Menu.Item>
+                            {({ active }) => (
+                              <div
                                 className={classNames(
                                   active ? "bg-gray-100" : "",
                                   "block px-4 py-2 text-sm text-gray-700"
                                 )}
                               >
                                 No new notifications
-                              </Link>
+                              </div>
                             )}
-                          </>
+                          </Menu.Item>
                         )}
-                      </Menu.Item>
+                      </>
                     </Menu.Items>
                   </Transition>
                 </Menu>

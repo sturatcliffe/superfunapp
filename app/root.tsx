@@ -8,11 +8,13 @@ import {
   ScrollRestoration,
 } from "remix";
 import type { LinksFunction, MetaFunction, LoaderFunction } from "remix";
+import { Notification } from "@prisma/client";
 
 import tailwindStylesheetUrl from "./styles/tailwind.css";
 import { getUser } from "./services/session.server";
 import { prisma } from "./services/db.server";
 import { useLoaderData } from "@remix-run/react";
+import { getUnreadNotificationsByUserId } from "./models/notification.server";
 
 export const links: LinksFunction = () => {
   return [
@@ -34,14 +36,18 @@ type ENV = {
 type LoaderData = {
   ENV: ENV;
   user: Awaited<ReturnType<typeof getUser>>;
-  unreadMessageCount: number | undefined;
+  notifications: Awaited<ReturnType<typeof getUnreadNotificationsByUserId>>;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await getUser(request);
   let unreadMessageCount;
+  let notifications: Notification[] = [];
 
   if (user) {
+    notifications = await getUnreadNotificationsByUserId(user.id);
+
+    //TODO : move query to model file
     const where = user.lastReadMessages
       ? { createdAt: { gt: user.lastReadMessages } }
       : {};
@@ -49,6 +55,16 @@ export const loader: LoaderFunction = async ({ request }) => {
     unreadMessageCount = await prisma.message.count({
       where,
     });
+
+    if (unreadMessageCount > 0) {
+      notifications.push({
+        id: -1,
+        userId: user.id,
+        message: `You have ${unreadMessageCount} unread chat messages`,
+        href: "/chat",
+        read: false,
+      });
+    }
   }
 
   return json<LoaderData>({
@@ -56,7 +72,7 @@ export const loader: LoaderFunction = async ({ request }) => {
       PUSHER_APP_KEY: process.env.PUSHER_APP_KEY,
     },
     user,
-    unreadMessageCount,
+    notifications,
   });
 };
 
