@@ -11,6 +11,7 @@ import {
 import { boolean, InferType, object, string } from "yup";
 import { validateFormData } from "~/utils";
 import { phone as parsePhone } from "phone";
+import { Popover } from "@headlessui/react";
 
 import { requireUser, requireUserId } from "~/services/session.server";
 import { updateProfile } from "~/models/user.server";
@@ -99,6 +100,7 @@ export default function ProfilePage() {
   const emailRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState(actionData?.errors);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   useEffect(() => {
     setErrors(actionData?.errors);
@@ -202,6 +204,8 @@ export default function ProfilePage() {
                 className={`block w-full max-w-lg rounded-md shadow-sm sm:text-sm ${
                   errors?.phone
                     ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                    : popoverOpen
+                    ? "border-orange-500 bg-orange-100 focus:border-orange-500 focus:ring-orange-500"
                     : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
                 }`}
                 defaultValue={user.phone ?? undefined}
@@ -339,12 +343,36 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          <div
-            className={`pt-6 sm:pt-5 ${
-              !user.phone ? "cursor-not-allowed opacity-50" : ""
-            }`}
+          <Popover
+            as="div"
+            className="relative pt-6 sm:pt-5"
+            onMouseEnter={() => {
+              if (!user.phone) {
+                setPopoverOpen(true);
+              }
+            }}
+            onMouseLeave={() => {
+              if (!user.phone) {
+                setPopoverOpen(false);
+              }
+            }}
           >
-            <div role="group" aria-labelledby="label-notifications">
+            {popoverOpen && (
+              <Popover.Panel
+                static
+                as="div"
+                className="absolute top-1 right-0 rounded-md bg-orange-100 px-2 py-1 text-orange-500 opacity-75"
+              >
+                Phone number required
+              </Popover.Panel>
+            )}
+            <div
+              role="group"
+              aria-labelledby="label-notifications"
+              className={`${
+                !user.phone ? "cursor-not-allowed opacity-50" : ""
+              }`}
+            >
               <div className="sm:grid sm:grid-cols-3 sm:items-baseline sm:gap-4">
                 <div>
                   <div
@@ -471,7 +499,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Popover>
         </div>
       </div>
 
