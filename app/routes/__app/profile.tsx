@@ -10,6 +10,7 @@ import {
 } from "remix";
 import { boolean, InferType, object, string } from "yup";
 import { validateFormData } from "~/utils";
+import { phone as parsePhone } from "phone";
 
 import { requireUser, requireUserId } from "~/services/session.server";
 import { updateProfile } from "~/models/user.server";
@@ -34,7 +35,9 @@ export const loader: LoaderFunction = async ({ request }) => {
 const schema = object({
   name: string().required().min(2),
   email: string().required().email(),
-  phone: string().required().min(11),
+  phone: string().test((value: string | undefined) => {
+    return value?.length ? parsePhone(value).isValid : true;
+  }),
   watchlistEmail: boolean().default(false),
   chatEmail: boolean().default(false),
   usersEmail: boolean().default(false),
@@ -55,7 +58,7 @@ export const action: ActionFunction = async ({ request }) => {
     return json<ActionData>({ errors }, { status: 400 });
   }
 
-  const {
+  let {
     name,
     email,
     phone,
@@ -67,11 +70,17 @@ export const action: ActionFunction = async ({ request }) => {
     usersSms,
   } = data;
 
+  if (!phone) {
+    watchlistSms = false;
+    chatSms = false;
+    usersSms = false;
+  }
+
   await updateProfile(
     userId,
     name,
     email,
-    phone,
+    phone ? parsePhone(phone).phoneNumber : null,
     watchlistEmail,
     chatEmail,
     usersEmail,
@@ -330,7 +339,11 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          <div className="pt-6 sm:pt-5">
+          <div
+            className={`pt-6 sm:pt-5 ${
+              !user.phone ? "cursor-not-allowed opacity-50" : ""
+            }`}
+          >
             <div role="group" aria-labelledby="label-notifications">
               <div className="sm:grid sm:grid-cols-3 sm:items-baseline sm:gap-4">
                 <div>
@@ -343,14 +356,20 @@ export default function ProfilePage() {
                 </div>
                 <div className="mt-4 sm:col-span-2 sm:mt-0">
                   <div className="max-w-lg space-y-4">
+                    <p className="text-sm text-gray-500">
+                      These are delivered via SMS to your mobile phone.
+                    </p>
                     <div className="relative flex items-start">
                       <div className="flex h-5 items-center">
                         <input
                           id="watchlistSms"
                           name="watchlistSms"
                           type="checkbox"
-                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          className={`h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 ${
+                            !user.phone ? "cursor-not-allowed" : ""
+                          }`}
                           value="true"
+                          disabled={!!!user.phone}
                           defaultChecked={
                             user.preferences.find(
                               (x) =>
@@ -363,7 +382,9 @@ export default function ProfilePage() {
                       <div className="ml-3 text-sm">
                         <label
                           htmlFor="watchlistSms"
-                          className="font-medium text-gray-700"
+                          className={`font-medium text-gray-700 ${
+                            !user.phone ? "cursor-not-allowed" : ""
+                          }`}
                         >
                           Watch list
                         </label>
@@ -380,8 +401,11 @@ export default function ProfilePage() {
                             id="chatSms"
                             name="chatSms"
                             type="checkbox"
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            className={`h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 ${
+                              !user.phone ? "cursor-not-allowed" : ""
+                            }`}
                             value="true"
+                            disabled={!!!user.phone}
                             defaultChecked={
                               user.preferences.find(
                                 (x) =>
@@ -394,7 +418,9 @@ export default function ProfilePage() {
                         <div className="ml-3 text-sm">
                           <label
                             htmlFor="chatSms"
-                            className="font-medium text-gray-700"
+                            className={`font-medium text-gray-700 ${
+                              !user.phone ? "cursor-not-allowed" : ""
+                            }`}
                           >
                             Chat
                           </label>
@@ -411,8 +437,11 @@ export default function ProfilePage() {
                             id="usersSms"
                             name="usersSms"
                             type="checkbox"
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            className={`h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 ${
+                              !user.phone ? "cursor-not-allowed" : ""
+                            }`}
                             value="true"
+                            disabled={!!!user.phone}
                             defaultChecked={
                               user.preferences.find(
                                 (x) =>
@@ -425,7 +454,9 @@ export default function ProfilePage() {
                         <div className="ml-3 text-sm">
                           <label
                             htmlFor="usersSms"
-                            className="font-medium text-gray-700"
+                            className={`font-medium text-gray-700 ${
+                              !user.phone ? "cursor-not-allowed" : ""
+                            }`}
                           >
                             Users
                           </label>

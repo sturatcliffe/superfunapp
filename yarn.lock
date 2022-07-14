@@ -5108,6 +5108,11 @@ periscopic@^3.0.0:
     estree-walker "^3.0.0"
     is-reference "^3.0.0"
 
+phone@^3.1.22:
+  version "3.1.22"
+  resolved "https://registry.yarnpkg.com/phone/-/phone-3.1.22.tgz#7b54ebfc7756e0cad18382aa09cafe383c1fee34"
+  integrity sha512-0Qr2cCgheYvwWY6zDHRCRcsWT0nyDaRREEfr9wvmTH8X306fD3Q4f334Q6vp5eMBC16zH6bGNKBUZNsOFjtFPQ==
+
 picocolors@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/picocolors/-/picocolors-1.0.0.tgz"
