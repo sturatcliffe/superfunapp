@@ -39,12 +39,9 @@ export default function Header() {
     const channel = pusher.subscribe("chat");
 
     channel.bind("message", (data: any) => {
-      if (
-        (window?.location.pathname !== "/chat" ?? false) &&
-        notifications.every((x) => x.id > 0)
-      ) {
-        setNotifications((notifications) => [
-          ...notifications,
+      if (window?.location.pathname !== "/chat" ?? false) {
+        setNotifications((prev) => [
+          ...prev.filter((x) => x.id !== -1),
           {
             id: -1,
             userId: user.id,
@@ -55,7 +52,11 @@ export default function Header() {
         ]);
       }
     });
-  }, []);
+
+    return () => {
+      pusher.unsubscribe("chat");
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     if (location.pathname === "/chat" ?? false) {

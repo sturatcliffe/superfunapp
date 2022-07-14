@@ -76,9 +76,7 @@ export async function validateFormData<T>(
     };
   } catch (err: any) {
     let errors = new Map();
-    err.inner.map((error: any) => {
-      errors.set(error.path, error.message);
-    });
+    err.inner.map((error: any) => errors.set(error.path, error.message));
 
     return {
       data: parsedFormData as T,
