@@ -397,7 +397,7 @@ export default function ProfilePage() {
                             !user.phone ? "cursor-not-allowed" : ""
                           }`}
                           value="true"
-                          disabled={!!!user.phone}
+                          disabled={!user.phone}
                           defaultChecked={
                             user.preferences.find(
                               (x) =>
@@ -433,7 +433,7 @@ export default function ProfilePage() {
                               !user.phone ? "cursor-not-allowed" : ""
                             }`}
                             value="true"
-                            disabled={!!!user.phone}
+                            disabled={!user.phone}
                             defaultChecked={
                               user.preferences.find(
                                 (x) =>
@@ -469,7 +469,7 @@ export default function ProfilePage() {
                               !user.phone ? "cursor-not-allowed" : ""
                             }`}
                             value="true"
-                            disabled={!!!user.phone}
+                            disabled={!user.phone}
                             defaultChecked={
                               user.preferences.find(
                                 (x) =>
