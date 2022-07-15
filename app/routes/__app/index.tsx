@@ -2,29 +2,42 @@ import { json, LoaderFunction, useLoaderData } from "remix";
 
 import { requireUserId } from "~/services/session.server";
 import {
+  getItemsCurrentlyBeingWatched,
   getMostPopularItems,
   getMostRecentItems,
   getMostWatchedItems,
+  getRecentlyWatchedItems,
 } from "~/models/item.server";
 
 interface LoaderData {
+  trending: Awaited<ReturnType<typeof getItemsCurrentlyBeingWatched>>;
+  recentlyWatched: Awaited<ReturnType<typeof getRecentlyWatchedItems>>;
   popular: Awaited<ReturnType<typeof getMostPopularItems>>;
-  watched: Awaited<ReturnType<typeof getMostWatchedItems>>;
+  mostWatched: Awaited<ReturnType<typeof getMostWatchedItems>>;
   recent: Awaited<ReturnType<typeof getMostRecentItems>>;
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireUserId(request);
 
+  const trending = await getItemsCurrentlyBeingWatched();
+  const recentlyWatched = await getRecentlyWatchedItems();
   const popular = await getMostPopularItems();
-  const watched = await getMostWatchedItems();
+  const mostWatched = await getMostWatchedItems();
   const recent = await getMostRecentItems();
 
-  return json<LoaderData>({ popular, watched, recent });
+  return json<LoaderData>({
+    trending,
+    recentlyWatched,
+    popular,
+    mostWatched,
+    recent,
+  });
 };
 
 export default function IndexPage() {
-  const { popular, watched, recent } = useLoaderData<LoaderData>();
+  const { trending, recentlyWatched, popular, mostWatched, recent } =
+    useLoaderData<LoaderData>();
 
   const SectionTitle = ({ title }: { title: String }) => (
     <div className="mb-8 border-b border-gray-200 pb-5">
@@ -35,7 +48,12 @@ export default function IndexPage() {
   const ItemList = ({
     items,
   }: {
-    items: LoaderData["popular"] | LoaderData["watched"] | LoaderData["recent"];
+    items:
+      | LoaderData["trending"]
+      | LoaderData["recentlyWatched"]
+      | LoaderData["popular"]
+      | LoaderData["mostWatched"]
+      | LoaderData["recent"];
   }) => (
     <ul className="-mx-4 mb-16 flex flex-wrap items-center md:flex-nowrap">
       {items.map((item, index) => (
@@ -50,11 +68,15 @@ export default function IndexPage() {
 
   return (
     <div className="p-6">
-      <SectionTitle title="Most Popular" />
+      <SectionTitle title="Trending Now" />
+      <ItemList items={trending} />
+      <SectionTitle title="Recently Watched" />
+      <ItemList items={recentlyWatched} />
+      <SectionTitle title="Most Popular Additions" />
       <ItemList items={popular} />
       <SectionTitle title="Most Watched" />
-      <ItemList items={watched} />
-      <SectionTitle title="Recently Added" />
+      <ItemList items={mostWatched} />
+      <SectionTitle title="Recent Additions" />
       <ItemList items={recent} />
     </div>
   );

@@ -5,6 +5,52 @@ import { prisma } from "~/services/db.server";
 export type WatchListItems = Awaited<ReturnType<typeof getWatchlistItems>>;
 export type { Item } from "@prisma/client";
 
+export function getItemsCurrentlyBeingWatched() {
+  return prisma.item.groupBy({
+    by: ["tt", "url", "image", "title"],
+    _count: {
+      tt: true,
+    },
+    where: {
+      status: {
+        in: [WatchStatus.Watching],
+      },
+    },
+    orderBy: [
+      {
+        _count: {
+          tt: "desc",
+        },
+      },
+      {
+        _max: {
+          updatedAt: "desc",
+        },
+      },
+    ],
+    take: 4,
+  });
+}
+
+export function getRecentlyWatchedItems() {
+  return prisma.item.groupBy({
+    by: ["tt", "url", "image", "title"],
+    where: {
+      status: {
+        in: [WatchStatus.Watched],
+      },
+    },
+    orderBy: [
+      {
+        _max: {
+          updatedAt: "desc",
+        },
+      },
+    ],
+    take: 4,
+  });
+}
+
 export function getMostPopularItems() {
   return prisma.item.groupBy({
     by: ["tt", "url", "image", "title"],
