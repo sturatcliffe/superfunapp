@@ -6,6 +6,7 @@ import type { WatchListItems } from "~/models/item.server";
 import { WatchStatus } from "~/enum/WatchStatus";
 
 import ConfirmModal from "./ConfirmModal";
+import VoteModal from "./VoteModal";
 
 interface Props {
   item: WatchListItems[number];
@@ -15,6 +16,7 @@ interface Props {
 const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
   const fetcher = useFetcher();
   const [showModal, setShowModal] = useState(false);
+  const [showVoteModal, setShowVoteModal] = useState(false);
 
   let status =
     (fetcher.submission?.formData.get("status") as unknown as WatchStatus) ??
@@ -124,12 +126,28 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
                     <li>
                       <button
                         className="whitespace-no-wrap block w-full rounded-b bg-gray-200 py-2 px-4 hover:bg-green-400 hover:text-white"
-                        type="submit"
-                        name="status"
-                        value={WatchStatus[WatchStatus.Watched]}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowVoteModal(true);
+                        }}
                       >
                         {WatchStatus[WatchStatus.Watched]}
                       </button>
+                      <VoteModal
+                        open={showVoteModal}
+                        confirmHandler={(score: 1 | -1) => {
+                          fetcher.submit(
+                            {
+                              itemId: item.id.toString(),
+                              action: "UpdateWatchStatus",
+                              status: "Watched",
+                              score: score.toString(),
+                            },
+                            { method: "post" }
+                          );
+                        }}
+                        cancelHandler={() => setShowVoteModal(false)}
+                      />
                     </li>
                   )}
                 </fetcher.Form>

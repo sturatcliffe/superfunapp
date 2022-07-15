@@ -185,13 +185,20 @@ export function deleteItem({
   });
 }
 
-export function markAsWatched(id: number, status: WatchStatus) {
+export function markAsWatched(
+  id: number,
+  status: WatchStatus,
+  score: number | undefined
+) {
+  console.log({ id, status, score });
+
   return prisma.item.update({
     where: {
       id,
     },
     data: {
       status,
+      score,
     },
   });
 }

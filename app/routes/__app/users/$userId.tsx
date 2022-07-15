@@ -170,11 +170,19 @@ const handleUpdateWatchStatus = async (
   if (currentUser.id === userId) {
     const itemId = formData.get("itemId");
     const status = formData.get("status");
+    const score = formData.get("score");
 
     if (!itemId) throw new Error("Must specify the item to mark as watched");
     if (!status) throw new Error("Must specify new status");
 
-    await markAsWatched(parseInt(itemId as string), status as WatchStatus);
+    if ((status as WatchStatus) === WatchStatus.Watched && !score)
+      throw new Error("Must specify the score when marking as watched");
+
+    await markAsWatched(
+      parseInt(itemId as string),
+      status as WatchStatus,
+      score ? parseInt(score as string) : undefined
+    );
   }
   return json({});
 };

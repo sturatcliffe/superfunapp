@@ -19,7 +19,6 @@ const ConfirmModal: FC<props> = (props) => {
         <Dialog
           as="div"
           className="fixed inset-0 z-10 overflow-y-auto"
-          // initialFocus={cancelButtonRef}
           onClose={props.cancelHandler}
         >
           <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
