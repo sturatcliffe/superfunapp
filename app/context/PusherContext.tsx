@@ -1,4 +1,4 @@
-import { createContext, FC, useContext } from "react";
+import { createContext, FC, useContext, useEffect, useMemo } from "react";
 import Pusher from "pusher-js";
 
 const PusherContext = createContext<Pusher | undefined>(undefined);
@@ -11,11 +11,15 @@ export const PusherProvider: FC<Props> = ({ children, appKey }) => {
   let pusher: Pusher | undefined = undefined;
 
   if (appKey) {
-    pusher = new Pusher(appKey, {
-      cluster: "eu",
-      forceTLS: true,
-    });
+    pusher = useMemo(() => {
+      return new Pusher(appKey, {
+        cluster: "eu",
+        forceTLS: true,
+      });
+    }, []);
   }
+
+  useEffect(() => () => pusher?.disconnect(), [pusher]);
 
   return (
     <PusherContext.Provider value={pusher}>{children}</PusherContext.Provider>
