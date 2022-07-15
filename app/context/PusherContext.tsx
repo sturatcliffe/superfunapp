@@ -8,16 +8,15 @@ interface Props {
 }
 
 export const PusherProvider: FC<Props> = ({ children, appKey }) => {
-  let pusher: Pusher | undefined = undefined;
-
-  if (appKey) {
-    pusher = useMemo(() => {
+  const pusher = useMemo(() => {
+    if (appKey) {
       return new Pusher(appKey, {
         cluster: "eu",
         forceTLS: true,
       });
-    }, []);
-  }
+    }
+    return undefined;
+  }, [appKey]);
 
   useEffect(() => () => pusher?.disconnect(), [pusher]);
 
