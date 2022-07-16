@@ -112,6 +112,36 @@ export function getMostRecentItems() {
   });
 }
 
+export function getWatchedItemsWithoutScore({
+  userId,
+}: {
+  userId: User["id"];
+}) {
+  return prisma.item.findMany({
+    where: { userId, status: WatchStatus.Watched, score: null },
+  });
+}
+
+export function setItemScore({
+  userId,
+  itemId,
+  score,
+}: {
+  userId: User["id"];
+  itemId: Item["id"];
+  score: Item["score"];
+}) {
+  return prisma.item.updateMany({
+    where: {
+      id: itemId,
+      userId,
+    },
+    data: {
+      score,
+    },
+  });
+}
+
 export function getWatchlistItems({ userId }: { userId: User["id"] }) {
   return prisma.item.findMany({
     where: { userId },
