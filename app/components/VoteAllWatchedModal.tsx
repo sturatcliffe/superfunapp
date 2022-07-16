@@ -1,5 +1,5 @@
 import { Dialog, Transition } from "@headlessui/react";
-import { FC, Fragment, useState } from "react";
+import { FC, Fragment, useRef, useState } from "react";
 import { useSubmit } from "remix";
 import {
   QuestionMarkCircleIcon,
@@ -16,6 +16,7 @@ interface Props {
 
 const ConfirmModal: FC<Props> = ({ open, items, cancelHandler }) => {
   const submit = useSubmit();
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const [saving, setSaving] = useState(false);
   const [scores, setScores] = useState(new Map<number, number>());
   return (
@@ -24,6 +25,7 @@ const ConfirmModal: FC<Props> = ({ open, items, cancelHandler }) => {
         <Dialog
           as="div"
           className="fixed inset-0 z-10 overflow-y-auto"
+          initialFocus={titleRef}
           onClose={() => {
             cancelHandler();
           }}
@@ -69,6 +71,7 @@ const ConfirmModal: FC<Props> = ({ open, items, cancelHandler }) => {
                     <Dialog.Title
                       as="h3"
                       className="text-lg font-medium leading-6 text-gray-900"
+                      ref={titleRef}
                     >
                       Pssst.....sorry to bother you!
                     </Dialog.Title>
