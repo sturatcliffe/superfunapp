@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   json,
   Links,
@@ -18,9 +19,6 @@ import { getUser } from "./services/session.server";
 import { getUnreadNotificationsByUserId } from "./models/notification.server";
 import { getWatchedItemsWithoutScore } from "./models/item.server";
 
-import { PusherProvider } from "./context/PusherContext";
-import { useEffect, useState } from "react";
-
 import VoteAllWatchedModal from "./components/VoteAllWatchedModal";
 
 export const links: LinksFunction = () => {
@@ -37,7 +35,6 @@ export const meta: MetaFunction = () => ({
 });
 
 type LoaderData = {
-  PUSHER_APP_KEY: string | undefined;
   user: Awaited<ReturnType<typeof getUser>>;
   notifications: Awaited<ReturnType<typeof getUnreadNotificationsByUserId>>;
   items: Awaited<ReturnType<typeof getWatchedItemsWithoutScore>>;
@@ -75,7 +72,6 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
 
   return json<LoaderData>({
-    PUSHER_APP_KEY: process.env.PUSHER_APP_KEY,
     user,
     notifications,
     items,
@@ -83,7 +79,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function App() {
-  const { PUSHER_APP_KEY, items } = useLoaderData<LoaderData>();
+  const { items } = useLoaderData<LoaderData>();
 
   const [showModal, setShowModal] = useState(items.length > 0);
 
@@ -103,9 +99,7 @@ export default function App() {
           items={items}
           cancelHandler={() => setShowModal(false)}
         />
-        <PusherProvider appKey={PUSHER_APP_KEY}>
-          <Outlet />
-        </PusherProvider>
+        <Outlet />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

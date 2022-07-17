@@ -9,7 +9,7 @@ interface Props {
 
 export const PusherProvider: FC<Props> = ({ children, appKey }) => {
   const pusher = useMemo(() => {
-    if (appKey) {
+    if (typeof window !== "undefined" && appKey) {
       return new Pusher(appKey, {
         cluster: "eu",
         forceTLS: true,
