@@ -33,7 +33,7 @@ export default function Header() {
 
   useEffect(() => {
     if (pusher) {
-      const channel = pusher.subscribe("chat");
+      const channel = pusher.subscribe("presence-chat");
 
       channel.bind("message", (data: any) => {
         if (window?.location.pathname !== "/chat" ?? false) {
@@ -51,7 +51,7 @@ export default function Header() {
       });
 
       return () => {
-        pusher.unsubscribe("chat");
+        pusher.unsubscribe("presence-chat");
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

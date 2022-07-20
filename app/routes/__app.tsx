@@ -17,13 +17,11 @@ export const loader: LoaderFunction = async ({ request }) => {
 export default function AppLayout() {
   const { PUSHER_APP_KEY } = useLoaderData<LoaderData>();
   return (
-    <>
+    <PusherProvider appKey={PUSHER_APP_KEY}>
       <Header />
       <div className="flex-1 overflow-auto">
-        <PusherProvider appKey={PUSHER_APP_KEY}>
-          <Outlet />
-        </PusherProvider>
+        <Outlet />
       </div>
-    </>
+    </PusherProvider>
   );
 }
