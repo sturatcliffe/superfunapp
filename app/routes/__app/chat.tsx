@@ -90,7 +90,7 @@ export const action: ActionFunction = async ({ request }) => {
     },
   });
 
-  pusher.trigger("chat", "message", message);
+  pusher.trigger("presence-chat", "message", message);
 
   return json({});
 };
