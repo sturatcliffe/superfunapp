@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Form, json, useActionData, useLoaderData, useTransition } from "remix";
-import type {
-  ActionFunction,
-  LoaderFunction,
-  ShouldReloadFunction,
-} from "remix";
+import type { ActionFunction, LoaderFunction } from "remix";
 import { formatDistanceToNow } from "date-fns";
-import { PresenceChannel } from "pusher-js";
 
 import { usePusher } from "~/context/PusherContext";
 
@@ -21,11 +16,6 @@ type ActionData = {
   errors?: {
     text: string;
   };
-};
-
-export const unstable_shouldReload: ShouldReloadFunction = ({ prevUrl }) => {
-  //don't reload the data after submitting a new message. Pusher will send the new message directly to the client
-  return prevUrl.pathname !== "/chat";
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -64,6 +54,7 @@ export const action: ActionFunction = async ({ request }) => {
   const userId = await requireUserId(request);
   const formData = await request.formData();
   const text = formData.get("text") as string | undefined;
+  const socketId = formData.get("socketId") as string | undefined;
 
   if (!text) {
     return json<ActionData>(
@@ -90,7 +81,9 @@ export const action: ActionFunction = async ({ request }) => {
     },
   });
 
-  pusher.trigger("presence-chat", "message", message);
+  pusher.trigger("presence-chat", "message", message, {
+    socket_id: socketId,
+  });
 
   return json({});
 };
@@ -104,16 +97,21 @@ export default function ChatPage() {
 
   const [messages, setMessages] = useState(initialMessages);
   const [members, setMembers] = useState<number[]>([]);
+  const [socketId, setSocketId] = useState<string | undefined>();
 
   const transition = useTransition();
-  const pusher = usePusher();
+  const { pusher, channel } = usePusher();
 
   let isSubmitting = transition.submission;
 
   useEffect(() => {
     if (pusher) {
-      const channel = pusher.subscribe("presence-chat") as PresenceChannel;
+      pusher.connection.bind("connected", () => {
+        setSocketId(pusher.connection.socket_id);
+      });
+    }
 
+    if (channel) {
       channel.members.each((member: any) => {
         const { id } = member;
         setMembers((prev) => [id, ...prev]);
@@ -133,8 +131,7 @@ export default function ChatPage() {
         setMembers((prev) => [...prev.filter((x) => x !== id)]);
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [channel]);
 
   useEffect(() => {
     if (messagesRef.current) {
@@ -150,6 +147,10 @@ export default function ChatPage() {
       }
     }
   }, [isSubmitting, actionData?.errors]);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
 
   return (
     <main className="flex h-full flex-col bg-white md:flex-row">
@@ -232,6 +233,7 @@ export default function ChatPage() {
           ))}
         </ul>
         <Form method="post" className="p-4">
+          <input type="hidden" name="socketId" defaultValue={socketId} />
           <Input
             ref={inputRef}
             type="text"
