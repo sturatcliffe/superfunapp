@@ -66,16 +66,23 @@ export default function Header() {
               text,
             } = data;
 
-            const n = new Notification(`${name}`, {
-              body: `${text.substring(0, 25)}...`,
-              image: buildUrl({ email, size: 192 }),
-            });
+            // const n = new Notification(`${name}`, {
+            //   body: `${text.substring(0, 25)}...`,
+            //   image: buildUrl({ email, size: 192 }),
+            // });
 
-            n.addEventListener("click", (e: any) => {
-              parent.focus();
-              window.focus();
-              navigate("/chat");
-              e.target.close();
+            // n.addEventListener("click", (e: any) => {
+            //   parent.focus();
+            //   window.focus();
+            //   navigate("/chat");
+            //   e.target.close();
+            // });
+
+            navigator.serviceWorker.getRegistrations().then((registrations) => {
+              registrations[0].showNotification(`${name}`, {
+                body: `${text.substring(0, 25)}...`,
+                image: buildUrl({ email, size: 192 }),
+              });
             });
           }
         }
