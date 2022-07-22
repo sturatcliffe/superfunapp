@@ -4,6 +4,11 @@ import { LoaderFunction, ActionFunction, useTransition } from "remix";
 import { json, useLoaderData, useCatch, useActionData } from "remix";
 import invariant from "tiny-invariant";
 import { ArrowUpIcon } from "@heroicons/react/outline";
+import {
+  NotificationEvent,
+  NotificationMethod,
+  WatchStatus,
+} from "@prisma/client";
 
 import {
   getWatchlistItems,
@@ -24,11 +29,7 @@ import type { Fields } from "~/components/AddNewItemForm";
 import AddNewItemForm from "~/components/AddNewItemForm";
 import { searchImdb, scrapeImdbData } from "~/services/imdb.server";
 import type { SearchResult } from "~/services/imdb.server";
-import {
-  NotificationEvent,
-  NotificationMethod,
-  WatchStatus,
-} from "@prisma/client";
+import { pusher } from "~/services/pusher.server";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
@@ -143,11 +144,19 @@ const handleCreate = async (
       );
     }
 
-    await createNotification(
+    const { id, message, href, read } = await createNotification(
       userId,
       `${currentUser.name} added a new item to your list!`,
       `/users/${userId}`
     );
+
+    pusher.sendToUser(userId.toString(), "notification", {
+      id,
+      userId,
+      message,
+      href,
+      read,
+    });
   }
 
   return json({});

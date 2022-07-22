@@ -1,7 +1,10 @@
 import { createContext, FC, useContext, useEffect, useMemo } from "react";
-import Pusher from "pusher-js";
+import Pusher, { Channel } from "pusher-js";
 
-const PusherContext = createContext<Pusher | undefined>(undefined);
+const PusherContext = createContext<{
+  pusher: Pusher | undefined;
+  channel: Channel | undefined;
+}>({ pusher: undefined, channel: undefined });
 
 interface Props {
   appKey: string | undefined;
@@ -18,10 +21,22 @@ export const PusherProvider: FC<Props> = ({ children, appKey }) => {
     return undefined;
   }, [appKey]);
 
-  useEffect(() => () => pusher?.disconnect(), [pusher]);
+  pusher?.signin();
+
+  const channel = pusher?.subscribe("presence-chat");
+
+  useEffect(
+    () => () => {
+      pusher?.unsubscribe("presence-chat");
+      pusher?.disconnect();
+    },
+    [pusher]
+  );
 
   return (
-    <PusherContext.Provider value={pusher}>{children}</PusherContext.Provider>
+    <PusherContext.Provider value={{ pusher, channel }}>
+      {children}
+    </PusherContext.Provider>
   );
 };
 

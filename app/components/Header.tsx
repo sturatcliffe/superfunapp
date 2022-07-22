@@ -29,7 +29,7 @@ export default function Header() {
   let location = useLocation();
   const fetcher = useFetcher();
   const navigate = useNavigate();
-  const pusher = usePusher();
+  const { pusher, channel } = usePusher();
 
   const [notifications, setNotifications] = useState(
     rootData?.notifications as DBNotification[]
@@ -37,8 +37,17 @@ export default function Header() {
 
   useEffect(() => {
     if (pusher) {
-      const channel = pusher.subscribe("presence-chat");
+      pusher.user.bind("notification", (data: any) => {
+        setNotifications((prev) => [
+          ...prev,
+          {
+            ...data,
+          },
+        ]);
+      });
+    }
 
+    if (channel) {
       channel.bind("message", (data: any) => {
         if (window?.location.pathname !== "/chat" ?? false) {
           setNotifications((prev) => [
@@ -87,13 +96,8 @@ export default function Header() {
           }
         }
       });
-
-      return () => {
-        pusher.unsubscribe("presence-chat");
-      };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pusher, channel]);
 
   useEffect(() => {
     if (location.pathname === "/chat" ?? false) {
