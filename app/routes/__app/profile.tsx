@@ -45,6 +45,9 @@ const schema = object({
   watchlistSms: boolean().default(false),
   chatSms: boolean().default(false),
   usersSms: boolean().default(false),
+  watchlistPush: boolean().default(false),
+  chatPush: boolean().default(false),
+  usersPush: boolean().default(false),
 });
 
 type Profile = InferType<typeof schema>;
@@ -69,6 +72,9 @@ export const action: ActionFunction = async ({ request }) => {
     watchlistSms,
     chatSms,
     usersSms,
+    watchlistPush,
+    chatPush,
+    usersPush,
   } = data;
 
   if (!phone) {
@@ -87,7 +93,10 @@ export const action: ActionFunction = async ({ request }) => {
     usersEmail,
     watchlistSms,
     chatSms,
-    usersSms
+    usersSms,
+    watchlistPush,
+    chatPush,
+    usersPush
   );
 
   return json({});
@@ -379,14 +388,11 @@ export default function ProfilePage() {
                     className="text-base font-medium text-gray-900 sm:text-sm sm:text-gray-700"
                     id="label-notifications"
                   >
-                    Push Notifications
+                    By SMS
                   </div>
                 </div>
                 <div className="mt-4 sm:col-span-2 sm:mt-0">
                   <div className="max-w-lg space-y-4">
-                    <p className="text-sm text-gray-500">
-                      These are delivered via SMS to your mobile phone.
-                    </p>
                     <div className="relative flex items-start">
                       <div className="flex h-5 items-center">
                         <input
@@ -500,6 +506,124 @@ export default function ProfilePage() {
               </div>
             </div>
           </Popover>
+          <div className="pt-6 sm:pt-5">
+            <div role="group" aria-labelledby="label-email">
+              <div className="sm:grid sm:grid-cols-3 sm:items-baseline sm:gap-4">
+                <div>
+                  <div
+                    className="text-base font-medium text-gray-900 sm:text-sm sm:text-gray-700"
+                    id="label-email"
+                  >
+                    Push
+                  </div>
+                </div>
+                <div className="mt-4 sm:col-span-2 sm:mt-0">
+                  {typeof window !== "undefined" &&
+                  Notification.permission === "granted" ? (
+                    <div className="max-w-lg space-y-4">
+                      <div className="relative flex items-start">
+                        <div className="flex h-5 items-center">
+                          <input
+                            id="watchlistPush"
+                            name="watchlistPush"
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            value="true"
+                            defaultChecked={
+                              user.preferences.find(
+                                (x) =>
+                                  x.method === NotificationMethod["Push"] &&
+                                  x.event === NotificationEvent["Watchlist"]
+                              )?.enabled ?? false
+                            }
+                          />
+                        </div>
+                        <div className="ml-3 text-sm">
+                          <label
+                            htmlFor="watchlistPush"
+                            className="font-medium text-gray-700"
+                          >
+                            Watch list
+                          </label>
+                          <p className="text-gray-500">
+                            Get notified when someone adds a new item to your
+                            watch list.
+                          </p>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="chatPush"
+                              name="chatPush"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              value="true"
+                              defaultChecked={
+                                user.preferences.find(
+                                  (x) =>
+                                    x.method === NotificationMethod["Push"] &&
+                                    x.event === NotificationEvent["Chat"]
+                                )?.enabled ?? false
+                              }
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="chatPush"
+                              className="font-medium text-gray-700"
+                            >
+                              Chat
+                            </label>
+                            <p className="text-gray-500">
+                              Get notified when a new chat message is posted.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="relative flex items-start">
+                          <div className="flex h-5 items-center">
+                            <input
+                              id="usersPush"
+                              name="usersPush"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              value="true"
+                              defaultChecked={
+                                user.preferences.find(
+                                  (x) =>
+                                    x.method === NotificationMethod["Push"] &&
+                                    x.event === NotificationEvent["Users"]
+                                )?.enabled ?? false
+                              }
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor="usersPush"
+                              className="font-medium text-gray-700"
+                            >
+                              Users
+                            </label>
+                            <p className="text-gray-500">
+                              Get notified when a new user signs up for
+                              SuperFunApp!
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <button onClick={() => Notification.requestPermission()}>
+                      Enable Push Notifications
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

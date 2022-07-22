@@ -2,12 +2,16 @@ import { Fragment, useEffect, useState } from "react";
 import { Link, Form, useLocation, useFetcher, useNavigate } from "remix";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { BellIcon, MenuIcon, XIcon, TrashIcon } from "@heroicons/react/outline";
-import { Notification } from "@prisma/client";
+import {
+  Notification as DBNotification,
+  NotificationEvent,
+  NotificationMethod,
+} from "@prisma/client";
 
 import { useMatchesData, useUser } from "~/utils";
 import { usePusher } from "~/context/PusherContext";
 
-import Gravatar from "./Gravatar";
+import Gravatar, { buildUrl } from "./Gravatar";
 
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(" ");
@@ -28,7 +32,7 @@ export default function Header() {
   const pusher = usePusher();
 
   const [notifications, setNotifications] = useState(
-    rootData?.notifications as Notification[]
+    rootData?.notifications as DBNotification[]
   );
 
   useEffect(() => {
@@ -47,6 +51,33 @@ export default function Header() {
               read: false,
             },
           ]);
+
+          if (
+            // @ts-ignore
+            user.preferences.find(
+              (x: any) =>
+                x.method === NotificationMethod["Push"] &&
+                x.event === NotificationEvent["Chat"]
+            )?.enabled &&
+            Notification.permission === "granted"
+          ) {
+            const {
+              user: { name, email },
+              text,
+            } = data;
+
+            const n = new Notification(`${name}`, {
+              body: `${text.substring(0, 25)}...`,
+              image: buildUrl({ email, size: 192 }),
+            });
+
+            n.addEventListener("click", (e: any) => {
+              parent.focus();
+              window.focus();
+              navigate("/chat");
+              e.target.close();
+            });
+          }
         }
       });
 
@@ -67,7 +98,7 @@ export default function Header() {
 
   useEffect(() => {
     if (rootData) {
-      setNotifications(rootData.notifications as Notification[]);
+      setNotifications(rootData.notifications as DBNotification[]);
     }
   }, [rootData]);
 

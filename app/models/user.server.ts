@@ -63,7 +63,10 @@ export async function updateProfile(
   usersEmail: boolean,
   watchlistSms: boolean,
   chatSms: boolean,
-  usersSms: boolean
+  usersSms: boolean,
+  watchlistPush: boolean,
+  chatPush: boolean,
+  usersPush: boolean
 ) {
   return prisma.user.update({
     where: {
@@ -187,6 +190,63 @@ export async function updateProfile(
               event: NotificationEvent["Users"],
               method: NotificationMethod["SMS"],
               enabled: usersSms,
+            },
+          },
+          {
+            where: {
+              userId_method_event: {
+                userId: id,
+                event: NotificationEvent["Watchlist"],
+                method: NotificationMethod["Push"],
+              },
+            },
+            create: {
+              event: NotificationEvent["Watchlist"],
+              method: NotificationMethod["Push"],
+              enabled: watchlistPush,
+            },
+            update: {
+              event: NotificationEvent["Watchlist"],
+              method: NotificationMethod["Push"],
+              enabled: watchlistPush,
+            },
+          },
+          {
+            where: {
+              userId_method_event: {
+                userId: id,
+                event: NotificationEvent["Chat"],
+                method: NotificationMethod["Push"],
+              },
+            },
+            create: {
+              event: NotificationEvent["Chat"],
+              method: NotificationMethod["Push"],
+              enabled: chatPush,
+            },
+            update: {
+              event: NotificationEvent["Chat"],
+              method: NotificationMethod["Push"],
+              enabled: chatPush,
+            },
+          },
+          {
+            where: {
+              userId_method_event: {
+                userId: id,
+                event: NotificationEvent["Users"],
+                method: NotificationMethod["Push"],
+              },
+            },
+            create: {
+              event: NotificationEvent["Users"],
+              method: NotificationMethod["Push"],
+              enabled: usersPush,
+            },
+            update: {
+              event: NotificationEvent["Users"],
+              method: NotificationMethod["Push"],
+              enabled: usersPush,
             },
           },
         ],

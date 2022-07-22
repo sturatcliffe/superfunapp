@@ -7,6 +7,10 @@ interface Props {
   email: string;
 }
 
+export const buildUrl = ({ email, size }: { email: string; size: number }) => {
+  return `https://www.gravatar.com/avatar/${Md5.init(email)}?s=${size}&d=retro`;
+};
+
 const Gravatar = ({
   size = 30,
   name,
@@ -16,9 +20,7 @@ const Gravatar = ({
   return (
     <img
       className={`rounded-full ${className}`}
-      src={`https://www.gravatar.com/avatar/${Md5.init(
-        email
-      )}?s=${size}&d=retro`}
+      src={buildUrl({ email, size })}
       alt={name ?? email}
     />
   );
