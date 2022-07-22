@@ -14,7 +14,6 @@ import { Item, Notification } from "@prisma/client";
 
 import tailwindStylesheetUrl from "./styles/tailwind.css";
 
-import { prisma } from "./services/db.server";
 import { getUser } from "./services/session.server";
 import { getUnreadNotificationsByUserId } from "./models/notification.server";
 import { getWatchedItemsWithoutScore } from "./models/item.server";
@@ -42,32 +41,11 @@ type LoaderData = {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await getUser(request);
-  let unreadMessageCount;
   let notifications: Notification[] = [];
   let items: Item[] = [];
 
   if (user) {
     notifications = await getUnreadNotificationsByUserId(user.id);
-
-    //TODO : move query to model file
-    const where = user.lastReadMessages
-      ? { userId: { not: user.id }, createdAt: { gt: user.lastReadMessages } }
-      : {};
-
-    unreadMessageCount = await prisma.message.count({
-      where,
-    });
-
-    if (unreadMessageCount > 0) {
-      notifications.push({
-        id: -1,
-        userId: user.id,
-        message: `You have ${unreadMessageCount} unread chat messages`,
-        href: "/chat",
-        read: false,
-      });
-    }
-
     items = await getWatchedItemsWithoutScore({ userId: user.id });
   }
 

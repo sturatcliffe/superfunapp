@@ -1,16 +1,25 @@
 import { prisma } from "~/services/db.server";
+import { pusher } from "~/services/pusher.server";
 
-export function createNotification(
+export async function createNotification(
   userId: number,
   message: string,
   href: string
 ) {
-  return prisma.notification.create({
+  const { id, read } = await prisma.notification.create({
     data: {
       userId,
       message,
       href,
     },
+  });
+
+  pusher.sendToUser(userId.toString(), "notification", {
+    id,
+    userId,
+    message,
+    href,
+    read,
   });
 }
 

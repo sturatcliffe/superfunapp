@@ -2,16 +2,12 @@ import { Fragment, useEffect, useState } from "react";
 import { Link, Form, useLocation, useFetcher, useNavigate } from "remix";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { BellIcon, MenuIcon, XIcon, TrashIcon } from "@heroicons/react/outline";
-import {
-  Notification as DBNotification,
-  NotificationEvent,
-  NotificationMethod,
-} from "@prisma/client";
+import { Notification as DBNotification } from "@prisma/client";
 
 import { useMatchesData, useUser } from "~/utils";
 import { usePusher } from "~/context/PusherContext";
 
-import Gravatar, { buildUrl } from "./Gravatar";
+import Gravatar from "./Gravatar";
 
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(" ");
@@ -26,86 +22,69 @@ const navigation = [
 export default function Header() {
   const user = useUser();
   const rootData = useMatchesData("root");
-  let location = useLocation();
   const fetcher = useFetcher();
   const navigate = useNavigate();
-  const { pusher, channel } = usePusher();
+  const { pusher } = usePusher();
+  let location = useLocation();
 
   const [notifications, setNotifications] = useState(
     rootData?.notifications as DBNotification[]
   );
 
+  const markAsRead = (id: number) => {
+    const data = new FormData();
+    data.set("id", id.toString());
+    data.set("_action", "single");
+
+    fetcher.submit(data, {
+      method: "post",
+      action: "/notification",
+    });
+  };
+
   useEffect(() => {
     if (pusher) {
       pusher.user.bind("notification", (data: any) => {
-        setNotifications((prev) => [
-          ...prev,
-          {
-            ...data,
-          },
-        ]);
-      });
-    }
+        const { id, href } = data;
 
-    if (channel) {
-      channel.bind("message", (data: any) => {
-        if (window?.location.pathname !== "/chat" ?? false) {
+        console.log(href, location.pathname);
+
+        if (href === "/chat" && href === location.pathname) {
+          markAsRead(id);
+        } else {
           setNotifications((prev) => [
-            ...prev.filter((x) => x.id !== -1),
+            ...prev,
             {
-              id: -1,
-              userId: user.id,
-              message: "New chat message received",
-              href: "/chat",
-              read: false,
+              ...data,
             },
           ]);
 
-          if (
-            // @ts-ignore
-            user.preferences.find(
-              (x: any) =>
-                x.method === NotificationMethod["Push"] &&
-                x.event === NotificationEvent["Chat"]
-            )?.enabled &&
-            Notification.permission === "granted"
-          ) {
-            const {
-              user: { name, email },
-              text,
-            } = data;
+          if (Notification.permission === "granted") {
+            const n = new Notification(data.message, {
+              badge: "/icons/icon-48x48.png",
+            });
 
-            // const n = new Notification(`${name}`, {
-            //   body: `${text.substring(0, 25)}...`,
-            //   image: buildUrl({ email, size: 192 }),
-            // });
-
-            // n.addEventListener("click", (e: any) => {
-            //   parent.focus();
-            //   window.focus();
-            //   navigate("/chat");
-            //   e.target.close();
-            // });
+            n.addEventListener("click", (e: any) => {
+              parent.focus();
+              window.focus();
+              navigate(data.href);
+              e.target.close();
+            });
 
             navigator.serviceWorker.getRegistrations().then((registrations) => {
-              registrations[0].showNotification(`${name}`, {
-                body: `${text.substring(0, 25)}...`,
-                image: buildUrl({ email, size: 192 }),
+              registrations[0].showNotification(data.message, {
+                badge: "/icons/icon-48x48.png",
               });
             });
           }
         }
       });
-    }
-  }, [pusher, channel, user]);
 
-  useEffect(() => {
-    if (location.pathname === "/chat" ?? false) {
-      setNotifications((notifications) => [
-        ...notifications.filter((x) => x.id !== -1),
-      ]);
+      return () => {
+        pusher.user.unbind_all();
+      };
     }
-  }, [location]);
+  }, [pusher]);
 
   useEffect(() => {
     if (rootData) {
@@ -188,19 +167,6 @@ export default function Header() {
                         {notifications.length > 0 ? (
                           <>
                             {notifications.map((notification, index) => {
-                              const markAsRead = () => {
-                                if (notification.id > 0) {
-                                  const data = new FormData();
-                                  data.set("id", notification.id.toString());
-                                  data.set("_action", "single");
-
-                                  fetcher.submit(data, {
-                                    method: "post",
-                                    action: "/notification",
-                                  });
-                                }
-                              };
-
                               return (
                                 <Menu.Item key={index}>
                                   {({ active }) => (
@@ -213,13 +179,17 @@ export default function Header() {
                                       <button
                                         className="text-left"
                                         onClick={() => {
-                                          markAsRead();
+                                          markAsRead(notification.id);
                                           navigate(notification.href);
                                         }}
                                       >
                                         {notification.message}
                                       </button>
-                                      <button onClick={() => markAsRead()}>
+                                      <button
+                                        onClick={() =>
+                                          markAsRead(notification.id)
+                                        }
+                                      >
                                         <XIcon className="h-4 w-4" />
                                       </button>
                                     </div>

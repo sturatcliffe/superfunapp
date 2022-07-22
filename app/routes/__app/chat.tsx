@@ -11,6 +11,7 @@ import { pusher } from "~/services/pusher.server";
 
 import Input from "~/components/Input";
 import Gravatar from "~/components/Gravatar";
+import { createNotification } from "~/models/notification.server";
 
 type ActionData = {
   errors?: {
@@ -81,6 +82,30 @@ export const action: ActionFunction = async ({ request }) => {
     },
   });
 
+  const users = await prisma.user.findMany({
+    where: {
+      NOT: {
+        id: userId,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  for (const user of users) {
+    const { id } = user;
+    await createNotification(
+      id,
+      `${message?.user.name}: ${
+        message && message.text.length > 15
+          ? `${message?.text.substring(0, 15)}...`
+          : message?.text
+      }`,
+      "/chat"
+    );
+  }
+
   pusher.trigger("presence-chat", "message", message, {
     socket_id: socketId,
   });
@@ -131,6 +156,13 @@ export default function ChatPage() {
         setMembers((prev) => [...prev.filter((x) => x !== id)]);
       });
     }
+
+    return () => {
+      pusher?.connection.unbind("connected");
+      channel?.unbind("message");
+      channel?.unbind("pusher:member_added");
+      channel?.unbind("pusher:member_removed");
+    };
   }, [pusher, channel]);
 
   useEffect(() => {

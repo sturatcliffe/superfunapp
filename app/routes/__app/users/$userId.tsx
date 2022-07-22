@@ -29,7 +29,6 @@ import type { Fields } from "~/components/AddNewItemForm";
 import AddNewItemForm from "~/components/AddNewItemForm";
 import { searchImdb, scrapeImdbData } from "~/services/imdb.server";
 import type { SearchResult } from "~/services/imdb.server";
-import { pusher } from "~/services/pusher.server";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
@@ -144,19 +143,11 @@ const handleCreate = async (
       );
     }
 
-    const { id, message, href, read } = await createNotification(
+    await createNotification(
       userId,
       `${currentUser.name} added a new item to your list!`,
       `/users/${userId}`
     );
-
-    pusher.sendToUser(userId.toString(), "notification", {
-      id,
-      userId,
-      message,
-      href,
-      read,
-    });
   }
 
   return json({});
