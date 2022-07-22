@@ -97,7 +97,7 @@ export default function Header() {
         }
       });
     }
-  }, [pusher, channel]);
+  }, [pusher, channel, user]);
 
   useEffect(() => {
     if (location.pathname === "/chat" ?? false) {

@@ -131,7 +131,7 @@ export default function ChatPage() {
         setMembers((prev) => [...prev.filter((x) => x !== id)]);
       });
     }
-  }, [channel]);
+  }, [pusher, channel]);
 
   useEffect(() => {
     if (messagesRef.current) {
