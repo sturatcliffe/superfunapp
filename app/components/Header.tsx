@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Link, Form, useLocation, useFetcher, useNavigate } from "remix";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { BellIcon, MenuIcon, XIcon, TrashIcon } from "@heroicons/react/outline";
@@ -24,67 +24,73 @@ export default function Header() {
   const rootData = useMatchesData("root");
   const fetcher = useFetcher();
   const navigate = useNavigate();
+  const location = useLocation();
   const { pusher } = usePusher();
-  let location = useLocation();
 
   const [notifications, setNotifications] = useState(
     rootData?.notifications as DBNotification[]
   );
 
-  const markAsRead = (id: number) => {
-    const data = new FormData();
-    data.set("id", id.toString());
-    data.set("_action", "single");
+  const markAsRead = useCallback(
+    (id: number) => {
+      const data = new FormData();
+      data.set("id", id.toString());
+      data.set("_action", "single");
 
-    fetcher.submit(data, {
-      method: "post",
-      action: "/notification",
-    });
-  };
+      fetcher.submit(data, {
+        method: "post",
+        action: "/notification",
+      });
+    },
+    [fetcher]
+  );
+
+  const onNotificationReceived = useCallback(
+    (data: any) => {
+      const { id, href } = data;
+
+      if (href === "/chat" && href === location.pathname) {
+        markAsRead(id);
+      } else {
+        setNotifications((prev) => [
+          ...prev,
+          {
+            ...data,
+          },
+        ]);
+
+        if (Notification.permission === "granted") {
+          const n = new Notification(data.message, {
+            badge: "/icons/icon-48x48.png",
+          });
+
+          n.addEventListener("click", (e: any) => {
+            parent.focus();
+            window.focus();
+            navigate(data.href);
+            e.target.close();
+          });
+
+          navigator.serviceWorker.getRegistrations().then((registrations) => {
+            registrations[0].showNotification(data.message, {
+              badge: "/icons/icon-48x48.png",
+            });
+          });
+        }
+      }
+    },
+    [markAsRead, navigate, location]
+  );
 
   useEffect(() => {
     if (pusher) {
-      pusher.user.bind("notification", (data: any) => {
-        const { id, href } = data;
-
-        console.log(href, location.pathname);
-
-        if (href === "/chat" && href === location.pathname) {
-          markAsRead(id);
-        } else {
-          setNotifications((prev) => [
-            ...prev,
-            {
-              ...data,
-            },
-          ]);
-
-          if (Notification.permission === "granted") {
-            const n = new Notification(data.message, {
-              badge: "/icons/icon-48x48.png",
-            });
-
-            n.addEventListener("click", (e: any) => {
-              parent.focus();
-              window.focus();
-              navigate(data.href);
-              e.target.close();
-            });
-
-            navigator.serviceWorker.getRegistrations().then((registrations) => {
-              registrations[0].showNotification(data.message, {
-                badge: "/icons/icon-48x48.png",
-              });
-            });
-          }
-        }
-      });
+      pusher.user.bind("notification", onNotificationReceived);
 
       return () => {
         pusher.user.unbind_all();
       };
     }
-  }, [pusher]);
+  }, [pusher, onNotificationReceived]);
 
   useEffect(() => {
     if (rootData) {

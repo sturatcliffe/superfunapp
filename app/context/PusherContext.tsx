@@ -1,16 +1,27 @@
-import { createContext, FC, useContext, useEffect, useMemo } from "react";
+import {
+  createContext,
+  FC,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Pusher, { PresenceChannel } from "pusher-js";
 
 const PusherContext = createContext<{
   pusher: Pusher | undefined;
   channel: PresenceChannel | undefined;
-}>({ pusher: undefined, channel: undefined });
+  members: number[];
+}>({ pusher: undefined, channel: undefined, members: [] });
 
 interface Props {
   appKey: string | undefined;
 }
 
 export const PusherProvider: FC<Props> = ({ children, appKey }) => {
+  const [members, setMembers] = useState<number[]>([]);
+
   const pusher = useMemo(() => {
     if (typeof window !== "undefined" && appKey) {
       return new Pusher(appKey, {
@@ -21,20 +32,42 @@ export const PusherProvider: FC<Props> = ({ children, appKey }) => {
     return undefined;
   }, [appKey]);
 
-  pusher?.signin();
+  const channelRef = useRef<PresenceChannel | undefined>();
 
-  const channel = pusher?.subscribe("presence-chat") as PresenceChannel;
+  const checkOnlineMembers = () => {
+    setMembers([]);
+    channelRef.current?.members.each((member: any) => {
+      const { id } = member;
+      setMembers((prev) => [...prev, parseInt(id)]);
+    });
+  };
 
-  useEffect(
-    () => () => {
-      pusher?.unsubscribe("presence-chat");
+  useEffect(() => {
+    pusher?.signin();
+
+    channelRef.current = pusher?.subscribe("presence-chat") as PresenceChannel;
+
+    channelRef.current?.bind("pusher:subscription_succeeded", () => {
+      checkOnlineMembers();
+    });
+
+    channelRef.current?.bind("pusher:member_added", () => {
+      setTimeout(checkOnlineMembers, 3000);
+    });
+
+    channelRef.current?.bind("pusher:member_removed", () => {
+      setTimeout(checkOnlineMembers, 3000);
+    });
+
+    return () => {
       pusher?.disconnect();
-    },
-    [pusher]
-  );
+    };
+  }, [pusher]);
 
   return (
-    <PusherContext.Provider value={{ pusher, channel }}>
+    <PusherContext.Provider
+      value={{ pusher, channel: channelRef.current, members }}
+    >
       {children}
     </PusherContext.Provider>
   );

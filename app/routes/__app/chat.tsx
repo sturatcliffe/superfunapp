@@ -9,9 +9,12 @@ import { prisma } from "~/services/db.server";
 import { requireUserId } from "~/services/session.server";
 import { pusher } from "~/services/pusher.server";
 
+import { createNotification } from "~/models/notification.server";
+import { getUsers } from "~/models/user.server";
+
 import Input from "~/components/Input";
 import Gravatar from "~/components/Gravatar";
-import { createNotification } from "~/models/notification.server";
+import UserList from "~/components/UserList";
 
 type ActionData = {
   errors?: {
@@ -22,13 +25,7 @@ type ActionData = {
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await requireUserId(request);
 
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-    },
-  });
+  const users = await getUsers();
 
   const messages = await prisma.message.findMany({
     orderBy: [{ createdAt: "asc" }],
@@ -121,7 +118,6 @@ export default function ChatPage() {
   const messagesRef = useRef<HTMLUListElement>(null);
 
   const [messages, setMessages] = useState(initialMessages);
-  const [members, setMembers] = useState<number[]>([]);
   const [socketId, setSocketId] = useState<string | undefined>();
 
   const transition = useTransition();
@@ -137,31 +133,14 @@ export default function ChatPage() {
     }
 
     if (channel) {
-      channel.members.each((member: any) => {
-        const { id } = member;
-        setMembers((prev) => [id, ...prev]);
-      });
-
       channel.bind("message", (data: any) => {
         setMessages((prev: any) => [...prev, data]);
-      });
-
-      channel.bind("pusher:member_added", (data: any) => {
-        const { id } = data;
-        setMembers((prev) => [id, ...prev]);
-      });
-
-      channel.bind("pusher:member_removed", (data: any) => {
-        const { id } = data;
-        setMembers((prev) => [...prev.filter((x) => x !== id)]);
       });
     }
 
     return () => {
       pusher?.connection.unbind("connected");
       channel?.unbind("message");
-      channel?.unbind("pusher:member_added");
-      channel?.unbind("pusher:member_removed");
     };
   }, [pusher, channel]);
 
@@ -187,36 +166,7 @@ export default function ChatPage() {
   return (
     <main className="flex h-full flex-col bg-white md:flex-row">
       <div className="w-full bg-gray-50 md:w-80 md:border-r">
-        <ol>
-          {users.map((user: any) => {
-            const isOnline =
-              userId === user.id ||
-              members.some((x) => x === user.id.toString());
-
-            return (
-              <li
-                key={user.id}
-                className={`flex items-center border-b p-4 text-lg md:text-xl ${
-                  isOnline ? "" : "opacity-50"
-                }`}
-              >
-                <Gravatar
-                  name={user.name}
-                  email={user.email}
-                  className="mr-4"
-                />
-                <div className="flex items-center">
-                  <div className="text-md">{user.name}</div>
-                  <div
-                    className={`ml-2 h-2 w-2 rounded-full ${
-                      isOnline ? "bg-green-500" : "bg-gray-300"
-                    } `}
-                  ></div>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
+        <UserList userId={userId} users={users} />
       </div>
 
       <div className="flex h-full w-full flex-col">

@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { json, useLoaderData, Outlet, NavLink, redirect } from "remix";
+import { json, useLoaderData, Outlet, redirect } from "remix";
 import type { LoaderFunction } from "remix";
+import { MenuIcon } from "@heroicons/react/outline";
 
 import { requireUser } from "~/services/session.server";
 import { getUsers } from "~/models/user.server";
 
-import Gravatar from "~/components/Gravatar";
-import { MenuIcon } from "@heroicons/react/outline";
+import UserList from "~/components/UserList";
 
 type LoaderData = {
+  user: Awaited<ReturnType<typeof requireUser>>;
   userListItems: Awaited<ReturnType<typeof getUsers>>;
 };
 
@@ -22,12 +23,13 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   const userListItems = await getUsers();
 
   return json<LoaderData>({
+    user,
     userListItems,
   });
 };
 
 export default function UsersPage() {
-  const data = useLoaderData<LoaderData>();
+  const { user, userListItems } = useLoaderData<LoaderData>();
 
   const [open, setOpen] = useState(false);
 
@@ -37,30 +39,8 @@ export default function UsersPage() {
         <div className="flex justify-center py-2 md:hidden">
           <MenuIcon onClick={() => setOpen(!open)} className="h-6 w-6" />
         </div>
-        <ol className={`${open ? "" : "hidden"} md:block`}>
-          {data.userListItems.map((user) => (
-            <li key={user.id}>
-              <NavLink
-                className={({ isActive }) =>
-                  `flex items-center border-b p-4 text-lg md:text-xl ${
-                    isActive ? "bg-white" : ""
-                  }`
-                }
-                to={`${user.id}`}
-                onClick={() => setOpen(false)}
-              >
-                <Gravatar
-                  name={user.name}
-                  email={user.email}
-                  className="mr-4"
-                />
-                {user.name}
-              </NavLink>
-            </li>
-          ))}
-        </ol>
+        <UserList userId={user.id} users={userListItems} renderAsLinks={true} />
       </div>
-
       <Outlet />
     </main>
   );
