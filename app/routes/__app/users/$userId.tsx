@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Transition } from "@headlessui/react";
-import { LoaderFunction, ActionFunction, useTransition } from "remix";
+import { LoaderFunction, ActionFunction } from "remix";
 import { json, useLoaderData, useCatch, useActionData } from "remix";
 import invariant from "tiny-invariant";
 import { ArrowUpIcon } from "@heroicons/react/outline";
@@ -36,6 +36,7 @@ type LoaderData = {
 };
 
 type ActionData = {
+  query?: string;
   results?: SearchResult[];
   errors?: Fields;
   deleted?: boolean;
@@ -57,7 +58,7 @@ const handleSearch = async (formData: FormData) => {
   }
 
   const results = await searchImdb(q as string);
-  return json<ActionData>({ results });
+  return json<ActionData>({ query: q, results });
 };
 
 const handleCreate = async (
@@ -229,26 +230,16 @@ export default function UserDetailsPage() {
   const actionData = useActionData<ActionData>();
   const pageRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const transition = useTransition();
 
   const [hasScrolled, setHasScrolled] = useState(false);
 
-  const CREATE_ACTION = "create";
-
-  let isSubmitting =
-    transition.submission?.formData.get("action") === CREATE_ACTION;
-
   useEffect(() => {
-    if (actionData?.errors?.url) {
+    const timeout = setTimeout(() => {
       inputRef.current?.focus();
-    }
-    if (!isSubmitting && !actionData?.errors) {
-      if (inputRef.current) {
-        inputRef.current.value = "";
-        inputRef.current.focus();
-      }
-    }
-  }, [actionData, isSubmitting]);
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [actionData]);
 
   const handleScroll = () => {
     if (pageRef.current?.scrollTop === 0) {
@@ -275,6 +266,7 @@ export default function UserDetailsPage() {
     >
       <AddNewItemForm
         ref={inputRef}
+        query={actionData?.query}
         results={actionData?.results}
         errors={actionData?.errors}
       />

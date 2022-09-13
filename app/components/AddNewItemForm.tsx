@@ -1,6 +1,7 @@
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { FormEvent, forwardRef, useEffect, useRef, useState } from "react";
 import { Form, useSubmit, useTransition } from "remix";
-import { SearchIcon, PlusIcon } from "@heroicons/react/outline";
+import { PlusIcon } from "@heroicons/react/outline";
+import debounce from "lodash.debounce";
 
 import { SEARCH_ACTION, CREATE_ACTION } from "../routes/__app/users/$userId";
 import Input from "./Input";
@@ -13,12 +14,13 @@ export interface Fields {
 }
 
 interface Props {
+  query?: string;
   results?: SearchResult[];
   errors?: Fields;
 }
 
 const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
-  ({ results: resultsProp, errors }, ref) => {
+  ({ query, results: resultsProp, errors }, ref) => {
     const submit = useSubmit();
     const transition = useTransition();
 
@@ -50,33 +52,36 @@ const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
       }
     }, [resultsProp]);
 
+    const search = debounce((query: string) => {
+      if (query.length > 0) {
+        const formData = new FormData();
+        formData.set("action", SEARCH_ACTION);
+        formData.set("q", query);
+
+        submit(formData, { method: "post" });
+      } else {
+        setResults([]);
+      }
+    }, 500);
+
     return (
       <Form ref={formRef} method="post">
-        <input type="hidden" name="action" value={SEARCH_ACTION}></input>
         <fieldset className="flex" disabled={isSubmitting}>
           <div className="relative w-full">
             <Input
               ref={ref}
               name="q"
               placeholder="Search for a title..."
-              isSubmitting={isSubmitting}
-              submitBtn={
-                <button
-                  type="submit"
-                  className={`${
-                    isSubmitting ? "cursor-not-allowed " : ""
-                  } rounded-r bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400`}
-                >
-                  {isSubmitting ? (
-                    <LoadingSpinner />
-                  ) : (
-                    <SearchIcon className="h-5 w-5" />
-                  )}
-                </button>
+              defaultValue={query}
+              onChange={(e: FormEvent<HTMLInputElement>) =>
+                search(e.currentTarget.value)
               }
               aria-invalid={errors?.url ? true : undefined}
               aria-errormessage={errors?.url ? "url-error" : undefined}
             />
+            {isSubmitting && (
+              <LoadingSpinner className="absolute top-2 right-2 h-5 w-5 text-blue-500" />
+            )}
             {results.length > 0 && (
               <ul className="absolute left-0 right-0 mt-1 max-h-60 divide-y divide-dashed overflow-y-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
                 {results.map((item) => (
