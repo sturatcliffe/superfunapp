@@ -1,4 +1,4 @@
-import { NavLink, redirect } from "remix";
+import { NavLink } from "remix";
 
 import { usePusher } from "~/context/PusherContext";
 
