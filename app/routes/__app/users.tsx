@@ -13,7 +13,7 @@ type LoaderData = {
   userListItems: Awaited<ReturnType<typeof getUsers>>;
 };
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export const loader: LoaderFunction = async ({ request }) => {
   const user = await requireUser(request);
 
   if (user && user.name == null) {
@@ -39,7 +39,13 @@ export default function UsersPage() {
         <div className="flex justify-center py-2 md:hidden">
           <MenuIcon onClick={() => setOpen(!open)} className="h-6 w-6" />
         </div>
-        <UserList userId={user.id} users={userListItems} renderAsLinks={true} />
+        <div className={open ? "block" : "hidden md:block"}>
+          <UserList
+            userId={user.id}
+            users={userListItems}
+            renderAsLinks={true}
+          />
+        </div>
       </div>
       <Outlet />
     </main>

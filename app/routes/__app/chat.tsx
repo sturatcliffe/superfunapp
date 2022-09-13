@@ -15,6 +15,7 @@ import { getUsers } from "~/models/user.server";
 import Input from "~/components/Input";
 import Gravatar from "~/components/Gravatar";
 import UserList from "~/components/UserList";
+import { MenuIcon } from "@heroicons/react/outline";
 
 type ActionData = {
   errors?: {
@@ -117,6 +118,7 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesRef = useRef<HTMLUListElement>(null);
 
+  const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState(initialMessages);
   const [socketId, setSocketId] = useState<string | undefined>();
 
@@ -166,7 +168,12 @@ export default function ChatPage() {
   return (
     <main className="flex h-full flex-col bg-white md:flex-row">
       <div className="w-full bg-gray-50 md:w-80 md:border-r">
-        <UserList userId={userId} users={users} />
+        <div className="flex justify-center py-2 md:hidden">
+          <MenuIcon onClick={() => setOpen(!open)} className="h-6 w-6" />
+        </div>
+        <div className={open ? "block" : "hidden md:block"}>
+          <UserList userId={userId} users={users} />
+        </div>
       </div>
 
       <div className="flex h-full w-full flex-col">
