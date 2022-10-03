@@ -13,6 +13,7 @@ import type { LinksFunction, MetaFunction, LoaderFunction } from "remix";
 import { Item, Notification } from "@prisma/client";
 
 import tailwindStylesheetUrl from "./styles/tailwind.css";
+import globalStylesheetUrl from "./styles/global.css";
 
 import { getUser } from "./services/session.server";
 import { getUnreadNotificationsByUserId } from "./models/notification.server";
@@ -24,6 +25,7 @@ export const links: LinksFunction = () => {
   return [
     { rel: "manifest", href: "/manifest.json" },
     { rel: "stylesheet", href: tailwindStylesheetUrl },
+    { rel: "stylesheet", href: globalStylesheetUrl },
   ];
 };
 

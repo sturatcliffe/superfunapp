@@ -46,6 +46,7 @@ export const SEARCH_ACTION = "search";
 export const CREATE_ACTION = "create";
 export const DELETE_ACTION = "delete";
 export const UPDATE_WATCH_STATUS_ACTION = "UpdateWatchStatus";
+export const ADD_TO_FRIENDS_LISTS_ACTION = "AddToFriendsLists";
 
 const handleSearch = async (formData: FormData) => {
   const q = formData.get("q") as string | undefined;
@@ -188,6 +189,32 @@ const handleUpdateWatchStatus = async (
   return json({});
 };
 
+const handleAddToFriendsLists = async (
+  formData: FormData,
+  currentUser: User,
+  baseUrl: string
+) => {
+  const url = formData.get("url");
+  const users = formData.getAll("users");
+
+  console.log({ url, users });
+
+  const newFormData = new FormData();
+  newFormData.set("url", url?.toString() ?? "");
+
+  //TODO : refactor the logic here as we scrape from IMDB for each selected user. Should only be done once
+  for (const user of users) {
+    await handleCreate(
+      newFormData,
+      parseInt(user.toString()),
+      currentUser,
+      baseUrl
+    );
+  }
+
+  return json({});
+};
+
 export const loader: LoaderFunction = async ({ request, params }) => {
   const userId = await requireUserId(request);
   invariant(params.userId, "userId not found");
@@ -219,6 +246,12 @@ export const action: ActionFunction = async ({ request, params }) => {
         formData,
         parseInt(params.userId),
         user
+      );
+    case ADD_TO_FRIENDS_LISTS_ACTION:
+      return await handleAddToFriendsLists(
+        formData,
+        user,
+        new URL(request.url).origin
       );
     default:
       throw new Error("Invalid action.");

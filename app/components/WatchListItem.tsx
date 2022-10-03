@@ -1,12 +1,13 @@
 import { FC, useState } from "react";
 import { useFetcher } from "remix";
-import { ChevronDownIcon, TrashIcon } from "@heroicons/react/outline";
+import { ChevronDownIcon, TrashIcon, PlusIcon } from "@heroicons/react/outline";
 
 import type { WatchListItems } from "~/models/item.server";
 import { WatchStatus } from "~/enum/WatchStatus";
 
 import ConfirmModal from "./ConfirmModal";
 import VoteModal from "./VoteModal";
+import AddToFriendsListModal from "./AddToFriendsListModal";
 
 interface Props {
   item: WatchListItems[number];
@@ -17,6 +18,8 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
   const fetcher = useFetcher();
   const [showModal, setShowModal] = useState(false);
   const [showVoteModal, setShowVoteModal] = useState(false);
+  const [showAddToFriendsListModal, setShowAddToFriendsListModal] =
+    useState(false);
 
   let status =
     (fetcher.submission?.formData.get("status") as unknown as WatchStatus) ??
@@ -24,7 +27,19 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
 
   return (
     <div className="mt-8 mb-16 flex flex-col items-center lg:my-8 lg:flex-row lg:items-stretch">
-      <div className="mb-4 flex-shrink-0 lg:mb-0 lg:mr-4">
+      <div className="relative mb-4 flex-shrink-0 lg:mb-0 lg:mr-4">
+        <div className="absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center bg-black opacity-0 transition hover:opacity-75">
+          <PlusIcon
+            className="h-10 w-10 cursor-pointer text-white"
+            onClick={() => setShowAddToFriendsListModal(true)}
+          />
+          <AddToFriendsListModal
+            open={showAddToFriendsListModal}
+            url={item.url}
+            title={item.title}
+            onClose={() => setShowAddToFriendsListModal(false)}
+          />
+        </div>
         <img className="w-48" alt={item.title} src={item.image} />
       </div>
       <div className="flex flex-col">
