@@ -28,7 +28,7 @@ const AddToFriendsListModal: FC<props> = ({ open, url, title, onClose }) => {
     if (fetcher.type === "done") {
       onClose();
     }
-  }, [fetcher]);
+  }, [fetcher, onClose]);
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -93,7 +93,7 @@ const AddToFriendsListModal: FC<props> = ({ open, url, title, onClose }) => {
                     value={ADD_TO_FRIENDS_LISTS_ACTION}
                   />
                   <input type="hidden" name="url" value={url} />
-                  <ul role="list" className="my-8 divide-y divide-gray-200">
+                  <ul className="my-8 divide-y divide-gray-200">
                     {(usersLayoutData?.userListItems as [])
                       .filter((user: any) => user.id !== parseInt(userId ?? ""))
                       .map((user: any) => (
