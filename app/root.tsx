@@ -8,6 +8,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useSearchParams,
 } from "remix";
 import type { LinksFunction, MetaFunction, LoaderFunction } from "remix";
 import { Item, Notification } from "@prisma/client";
@@ -17,9 +18,14 @@ import globalStylesheetUrl from "./styles/global.css";
 
 import { getUser } from "./services/session.server";
 import { getUnreadNotificationsByUserId } from "./models/notification.server";
-import { getWatchedItemsWithoutScore } from "./models/item.server";
+import {
+  getMostRecentItemByTT,
+  getWatchedItemsWithoutScore,
+} from "./models/item.server";
 
 import VoteAllWatchedModal from "./components/VoteAllWatchedModal";
+import AddToFriendsListModal from "./components/AddToFriendsListModal";
+import { getUsersWhoHaventWatched } from "./models/user.server";
 
 export const links: LinksFunction = () => {
   return [
@@ -35,31 +41,52 @@ export const meta: MetaFunction = () => ({
   viewport: "width=device-width,initial-scale=1",
 });
 
-type LoaderData = {
+export type LoaderData = {
   user: Awaited<ReturnType<typeof getUser>>;
   notifications: Awaited<ReturnType<typeof getUnreadNotificationsByUserId>>;
   items: Awaited<ReturnType<typeof getWatchedItemsWithoutScore>>;
+  title: {
+    tt: string;
+    title: string;
+    description: string;
+    image: string;
+    url: string;
+  } | null;
+  users: Awaited<ReturnType<typeof getUsersWhoHaventWatched>>;
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await getUser(request);
+  const url = new URL(request.url);
+  const tt = url.searchParams.get("add");
+
   let notifications: Notification[] = [];
   let items: Item[] = [];
+  let title = null;
+  let users: { id: number; name: string; email: string }[] = [];
 
   if (user) {
     notifications = await getUnreadNotificationsByUserId(user.id);
     items = await getWatchedItemsWithoutScore({ userId: user.id });
   }
 
+  if (tt) {
+    title = await getMostRecentItemByTT(tt);
+    users = await getUsersWhoHaventWatched(tt);
+  }
+
   return json<LoaderData>({
     user,
     notifications,
     items,
+    title,
+    users,
   });
 };
 
 export default function App() {
   const { items } = useLoaderData<LoaderData>();
+  const [searchParams] = useSearchParams();
 
   const [showModal, setShowModal] = useState(items.length > 0);
 
@@ -83,6 +110,7 @@ export default function App() {
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
+        {searchParams.get("add") && <AddToFriendsListModal />}
       </body>
     </html>
   );

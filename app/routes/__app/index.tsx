@@ -1,4 +1,11 @@
-import { json, LoaderFunction, useLoaderData } from "remix";
+import {
+  ActionFunction,
+  json,
+  LoaderFunction,
+  redirect,
+  useLoaderData,
+} from "remix";
+import { array, number, object, string } from "yup";
 
 import { requireUserId } from "~/services/session.server";
 import {
@@ -7,7 +14,9 @@ import {
   getMostRecentItems,
   getMostWatchedItems,
   getRecentlyWatchedItems,
+  upsertItem,
 } from "~/models/item.server";
+
 import ListItem from "~/components/dashboard/ListItem";
 
 interface DashboardListItem {
@@ -76,6 +85,57 @@ export const loader: LoaderFunction = async ({ request }) => {
     mostWatched,
     recent,
   });
+};
+
+const schema = object({
+  tt: string().required(),
+  title: string().required(),
+  description: string().required(),
+  image: string().required(),
+  url: string().required(),
+  referrer: string().required(),
+  users: array().of(number().required()).required(),
+});
+
+export const action: ActionFunction = async ({ request }) => {
+  const currentUserId = await requireUserId(request);
+  const formData = await request.formData();
+
+  const tt = formData.get("tt")?.toString() || "";
+  const title = formData.get("title")?.toString() || "";
+  const description = formData.get("description")?.toString() || "";
+  const image = formData.get("image")?.toString() || "";
+  const url = formData.get("url")?.toString() || "";
+  const referrer = formData.get("referrer")?.toString() || "";
+  const users = formData.getAll("users").map((x) => parseInt(x?.toString()));
+
+  try {
+    await schema.validate({
+      tt,
+      title,
+      description,
+      image,
+      url,
+      referrer,
+      users,
+    });
+  } catch {
+    throw new Error("Something went wrong...");
+  }
+
+  for (const user of users) {
+    await upsertItem({
+      tt,
+      title,
+      description,
+      image,
+      url,
+      userId: parseInt(user.toString()),
+      createdById: currentUserId,
+    });
+  }
+
+  return redirect(referrer);
 };
 
 const SectionTitle = ({ title }: { title: String }) => (
