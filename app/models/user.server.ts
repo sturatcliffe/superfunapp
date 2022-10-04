@@ -29,6 +29,23 @@ export async function getUserByEmail(email: User["email"]) {
   return prisma.user.findUnique({ where: { email } });
 }
 
+export async function getUsersWhoHaventWatched(tt: string) {
+  return prisma.user.findMany({
+    where: {
+      items: {
+        none: {
+          tt,
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
+}
+
 export async function createUser(
   email: User["email"],
   password: string,

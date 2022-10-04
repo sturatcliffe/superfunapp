@@ -7,9 +7,14 @@ export type { Item } from "@prisma/client";
 
 export function getItemsCurrentlyBeingWatched() {
   return prisma.item.groupBy({
-    by: ["tt", "url", "image", "title"],
+    by: ["tt"],
     _count: {
       tt: true,
+    },
+    _max: {
+      title: true,
+      url: true,
+      image: true,
     },
     where: {
       status: {
@@ -34,7 +39,12 @@ export function getItemsCurrentlyBeingWatched() {
 
 export function getRecentlyWatchedItems() {
   return prisma.item.groupBy({
-    by: ["tt", "url", "image", "title"],
+    by: ["tt"],
+    _max: {
+      title: true,
+      url: true,
+      image: true,
+    },
     where: {
       status: {
         in: [WatchStatus.Watched],
@@ -53,9 +63,14 @@ export function getRecentlyWatchedItems() {
 
 export function getMostPopularItems() {
   return prisma.item.groupBy({
-    by: ["tt", "url", "image", "title"],
+    by: ["tt"],
     _count: {
       tt: true,
+    },
+    _max: {
+      title: true,
+      url: true,
+      image: true,
     },
     orderBy: [
       {
@@ -75,7 +90,12 @@ export function getMostPopularItems() {
 
 export function getMostWatchedItems() {
   return prisma.item.groupBy({
-    by: ["tt", "url", "image", "title"],
+    by: ["tt"],
+    _max: {
+      title: true,
+      url: true,
+      image: true,
+    },
     where: {
       status: {
         in: [WatchStatus["Watched"]],
@@ -100,6 +120,7 @@ export function getMostWatchedItems() {
 export function getMostRecentItems() {
   return prisma.item.findMany({
     select: {
+      tt: true,
       image: true,
       title: true,
       url: true,
@@ -147,6 +168,7 @@ export function getWatchlistItems({ userId }: { userId: User["id"] }) {
     where: { userId },
     select: {
       id: true,
+      tt: true,
       title: true,
       description: true,
       url: true,
@@ -204,6 +226,24 @@ export async function upsertItem({
       },
     });
   }
+}
+
+export function getMostRecentItemByTT(tt: string) {
+  return prisma.item.findFirst({
+    where: {
+      tt,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      tt: true,
+      title: true,
+      description: true,
+      image: true,
+      url: true,
+    },
+  });
 }
 
 export function deleteItem({

@@ -8,23 +8,66 @@ import {
   getMostWatchedItems,
   getRecentlyWatchedItems,
 } from "~/models/item.server";
+import ListItem from "~/components/dashboard/ListItem";
+
+interface DashboardListItem {
+  tt: string;
+  title: string;
+  image: string;
+  url: string;
+}
 
 interface LoaderData {
-  trending: Awaited<ReturnType<typeof getItemsCurrentlyBeingWatched>>;
-  recentlyWatched: Awaited<ReturnType<typeof getRecentlyWatchedItems>>;
-  popular: Awaited<ReturnType<typeof getMostPopularItems>>;
-  mostWatched: Awaited<ReturnType<typeof getMostWatchedItems>>;
-  recent: Awaited<ReturnType<typeof getMostRecentItems>>;
+  trending: DashboardListItem[];
+  recentlyWatched: DashboardListItem[];
+  popular: DashboardListItem[];
+  mostWatched: DashboardListItem[];
+  recent: DashboardListItem[];
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireUserId(request);
 
-  const trending = await getItemsCurrentlyBeingWatched();
-  const recentlyWatched = await getRecentlyWatchedItems();
-  const popular = await getMostPopularItems();
-  const mostWatched = await getMostWatchedItems();
-  const recent = await getMostRecentItems();
+  const trending = (await getItemsCurrentlyBeingWatched()).map((item) => {
+    return {
+      tt: item.tt,
+      title: item._max.title,
+      image: item._max.image,
+      url: item._max.url,
+    } as DashboardListItem;
+  });
+  const recentlyWatched = (await getRecentlyWatchedItems()).map((item) => {
+    return {
+      tt: item.tt,
+      title: item._max.title,
+      image: item._max.image,
+      url: item._max.url,
+    } as DashboardListItem;
+  });
+  const popular = (await getMostPopularItems()).map((item) => {
+    return {
+      tt: item.tt,
+      title: item._max.title,
+      image: item._max.image,
+      url: item._max.url,
+    } as DashboardListItem;
+  });
+  const mostWatched = (await getMostWatchedItems()).map((item) => {
+    return {
+      tt: item.tt,
+      title: item._max.title,
+      image: item._max.image,
+      url: item._max.url,
+    } as DashboardListItem;
+  });
+  const recent = (await getMostRecentItems()).map((item) => {
+    return {
+      tt: item.tt,
+      title: item.title,
+      image: item.image,
+      url: item.url,
+    } as DashboardListItem;
+  });
 
   return json<LoaderData>({
     trending,
@@ -35,36 +78,31 @@ export const loader: LoaderFunction = async ({ request }) => {
   });
 };
 
-export default function IndexPage() {
-  const { trending, recentlyWatched, popular, mostWatched, recent } =
-    useLoaderData<LoaderData>();
+const SectionTitle = ({ title }: { title: String }) => (
+  <div className="mb-8 border-b border-gray-200 pb-5">
+    <h3 className="text-lg font-medium leading-6 text-gray-900">{title}</h3>
+  </div>
+);
 
-  const SectionTitle = ({ title }: { title: String }) => (
-    <div className="mb-8 border-b border-gray-200 pb-5">
-      <h3 className="text-lg font-medium leading-6 text-gray-900">{title}</h3>
-    </div>
-  );
-
-  const ItemList = ({
-    items,
-  }: {
-    items:
-      | LoaderData["trending"]
-      | LoaderData["recentlyWatched"]
-      | LoaderData["popular"]
-      | LoaderData["mostWatched"]
-      | LoaderData["recent"];
-  }) => (
-    <ul className="-mx-4 mb-16 flex flex-wrap items-center md:flex-nowrap">
-      {items.map((item, index) => (
-        <li key={index} className="mb-4 w-1/2 px-4 md:w-1/4">
-          <a target="_blank" rel="noreferrer" href={item.url}>
-            <img src={item.image} alt={item.title} />
-          </a>
-        </li>
+const ItemList = ({ items }: { items: DashboardListItem[] }) => {
+  return (
+    <ul className="-mx-4 mb-16 flex flex-wrap items-center">
+      {items.map((item) => (
+        <ListItem
+          key={item.tt}
+          tt={item.tt}
+          title={item.title}
+          url={item.url}
+          image={item.image}
+        />
       ))}
     </ul>
   );
+};
+
+export default function IndexPage() {
+  const { trending, recentlyWatched, popular, mostWatched, recent } =
+    useLoaderData<LoaderData>();
 
   return (
     <div className="p-6">

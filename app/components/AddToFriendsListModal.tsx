@@ -1,34 +1,35 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { FC, Fragment, useEffect } from "react";
-import { useFetcher, useParams } from "remix";
+import { useFetcher } from "remix";
 import { PlusIcon } from "@heroicons/react/outline";
-
-import { useMatchesData } from "~/utils";
-import { ADD_TO_FRIENDS_LISTS_ACTION } from "~/routes/__app/users/$userId";
 
 import Gravatar from "./Gravatar";
 import LoadingSpinner from "./LoadingSpinner";
 
 interface props {
   open: boolean;
-  url: string;
+  tt: string;
   title: string;
   onClose: () => void;
 }
 
-const AddToFriendsListModal: FC<props> = ({ open, url, title, onClose }) => {
-  const { userId } = useParams();
-  // TODO : find out how to make this strongly typed
-  const usersLayoutData = useMatchesData("routes/__app/users");
-  const fetcher = useFetcher();
+const AddToFriendsListModal: FC<props> = ({ open, tt, title, onClose }) => {
+  const addToList = useFetcher();
+  const users = useFetcher();
 
-  const submitting = fetcher.state === "submitting";
+  const submitting = addToList.state === "submitting";
+  const loading = users.state === "loading";
 
   useEffect(() => {
-    if (fetcher.type === "done") {
+    if (open && users.type === "init") {
+      users.load(`/api/users?unwatched=${tt}`);
+    }
+
+    if (addToList.state === "submitting") {
+      users.load(`/api/users?unwatched=${tt}`);
       onClose();
     }
-  }, [fetcher, onClose]);
+  }, [open, users, addToList, onClose, tt]);
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -86,59 +87,62 @@ const AddToFriendsListModal: FC<props> = ({ open, url, title, onClose }) => {
                 </div>
               </div>
               <div className="mt-5 sm:mt-4">
-                <fetcher.Form method="post">
-                  <input
-                    type="hidden"
-                    name="action"
-                    value={ADD_TO_FRIENDS_LISTS_ACTION}
-                  />
-                  <input type="hidden" name="url" value={url} />
-                  <ul className="my-8 divide-y divide-gray-200">
-                    {(usersLayoutData?.userListItems as [])
-                      .filter((user: any) => user.id !== parseInt(userId ?? ""))
-                      .map((user: any) => (
-                        <li key={user.id}>
-                          <label className="flex cursor-pointer items-center py-4">
-                            <Gravatar size={30} email={user.email} />
-                            <div className="ml-3 mr-auto">
-                              <p className="text-sm font-medium text-gray-900">
-                                {user.name}
-                              </p>
-                            </div>
-                            <input
-                              name="users"
-                              type="checkbox"
-                              value={user.id}
-                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          </label>
-                        </li>
-                      ))}
-                  </ul>
-                  <div className="flex flex-row-reverse">
-                    <button
-                      type="submit"
-                      className={`inline-flex justify-center whitespace-nowrap rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2${
-                        submitting ? "cursor-not-allowed opacity-50" : ""
-                      }`}
-                      disabled={submitting}
-                    >
-                      {submitting ? (
-                        <LoadingSpinner className="mr-2 h-5 w-5" />
-                      ) : (
-                        <PlusIcon className="mr-2 h-5 w-5" />
-                      )}
-                      {submitting ? "Adding..." : "Add to lists"}
-                    </button>
-                    <button
-                      onClick={onClose}
-                      className="mr-2 inline-flex justify-center rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                      disabled={submitting}
-                    >
-                      Cancel
-                    </button>
+                {loading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <LoadingSpinner className="h-10 w-10 text-blue-900" />
                   </div>
-                </fetcher.Form>
+                ) : (
+                  <addToList.Form method="post" action="/api/users">
+                    <input type="hidden" name="tt" value={tt} />
+                    <ul className="my-8 divide-y divide-gray-200">
+                      {users.data?.length > 0 ? (
+                        users.data.map((user: any) => (
+                          <li key={user.id}>
+                            <label className="flex cursor-pointer items-center py-4">
+                              <Gravatar size={30} email={user.email} />
+                              <div className="ml-3 mr-auto">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {user.name}
+                                </p>
+                              </div>
+                              <input
+                                name="users"
+                                type="checkbox"
+                                value={user.id}
+                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              />
+                            </label>
+                          </li>
+                        ))
+                      ) : (
+                        <li>All of your friends have watched this title!</li>
+                      )}
+                    </ul>
+                    <div className="flex flex-row-reverse">
+                      <button
+                        type="submit"
+                        className={`inline-flex justify-center whitespace-nowrap rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2${
+                          submitting ? "cursor-not-allowed opacity-50" : ""
+                        }`}
+                        disabled={submitting}
+                      >
+                        {submitting ? (
+                          <LoadingSpinner className="mr-2 h-5 w-5" />
+                        ) : (
+                          <PlusIcon className="mr-2 h-5 w-5" />
+                        )}
+                        {submitting ? "Adding..." : "Add to lists"}
+                      </button>
+                      <button
+                        onClick={onClose}
+                        className="mr-2 inline-flex justify-center rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-200 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                        disabled={submitting}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </addToList.Form>
+                )}
               </div>
             </div>
           </Transition.Child>

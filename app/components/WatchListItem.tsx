@@ -35,7 +35,7 @@ const WatchListItem: FC<Props> = ({ item, currentUserId }) => {
           />
           <AddToFriendsListModal
             open={showAddToFriendsListModal}
-            url={item.url}
+            tt={item.tt}
             title={item.title}
             onClose={() => setShowAddToFriendsListModal(false)}
           />
