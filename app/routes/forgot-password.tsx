@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { ActionFunction, LoaderFunction, MetaFunction } from "remix";
 import { Form, json, useActionData, useLoaderData, redirect } from "remix";
-import { getUserByEmail } from "~/models/user.server";
+import { getUserByEmail } from "~/domain/user.server";
 import { sendMail } from "~/services/email.server";
 
 import {

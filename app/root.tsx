@@ -17,15 +17,15 @@ import tailwindStylesheetUrl from "./styles/tailwind.css";
 import globalStylesheetUrl from "./styles/global.css";
 
 import { getUser } from "./services/session.server";
-import { getUnreadNotificationsByUserId } from "./models/notification.server";
+import { getUnreadNotificationsByUserId } from "./domain/notification.server";
 import {
   getMostRecentItemByTT,
   getWatchedItemsWithoutScore,
-} from "./models/item.server";
+} from "./domain/item.server";
 
 import VoteAllWatchedModal from "./components/VoteAllWatchedModal";
 import AddToFriendsListModal from "./components/AddToFriendsListModal";
-import { getUsersWhoHaventWatched } from "./models/user.server";
+import { getUsersWhoHaventWatched } from "./domain/user.server";
 
 export const links: LinksFunction = () => {
   return [

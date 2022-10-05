@@ -15,10 +15,10 @@ import {
   upsertItem,
   markAsWatched,
   deleteItem,
-} from "~/models/item.server";
-import { createNotification } from "~/models/notification.server";
-import { getUserById } from "~/models/user.server";
-import type { User } from "~/models/user.server";
+} from "~/domain/item.server";
+import { createNotification } from "~/domain/notification.server";
+import { getUserById } from "~/domain/user.server";
+import type { User } from "~/domain/user.server";
 
 import { requireUser, requireUserId } from "~/services/session.server";
 import { sendMail } from "~/services/email.server";

@@ -1,7 +1,7 @@
 import { WatchStatus } from "@prisma/client";
 import { FC, useState } from "react";
 
-import type { WatchListItems } from "~/models/item.server";
+import type { WatchListItems } from "~/domain/item.server";
 
 import WatchListItem from "./WatchListItem";
 

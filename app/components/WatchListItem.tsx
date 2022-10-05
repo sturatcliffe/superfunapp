@@ -2,7 +2,7 @@ import { FC, useState } from "react";
 import { Link, useFetcher } from "remix";
 import { ChevronDownIcon, TrashIcon, PlusIcon } from "@heroicons/react/outline";
 
-import type { WatchListItems } from "~/models/item.server";
+import type { WatchListItems } from "~/domain/item.server";
 import { WatchStatus } from "~/enum/WatchStatus";
 
 import ConfirmModal from "./ConfirmModal";

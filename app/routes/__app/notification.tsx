@@ -5,7 +5,7 @@ import { validateFormData } from "~/utils";
 import {
   markAllNotificationsRead,
   markNotificationRead,
-} from "~/models/notification.server";
+} from "~/domain/notification.server";
 import { requireUserId } from "~/services/session.server";
 
 const schema = object({

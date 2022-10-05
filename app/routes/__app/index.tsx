@@ -15,7 +15,7 @@ import {
   getMostWatchedItems,
   getRecentlyWatchedItems,
   upsertItem,
-} from "~/models/item.server";
+} from "~/domain/item.server";
 
 import ListItem from "~/components/dashboard/ListItem";
 

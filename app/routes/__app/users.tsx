@@ -4,7 +4,7 @@ import type { LoaderFunction } from "remix";
 import { MenuIcon } from "@heroicons/react/outline";
 
 import { requireUser } from "~/services/session.server";
-import { getUsers } from "~/models/user.server";
+import { getUsers } from "~/domain/user.server";
 
 import UserList from "~/components/UserList";
 

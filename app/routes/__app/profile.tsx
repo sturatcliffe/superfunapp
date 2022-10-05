@@ -14,15 +14,16 @@ import { phone as parsePhone } from "phone";
 import { Popover } from "@headlessui/react";
 
 import { requireUser, requireUserId } from "~/services/session.server";
-import { updateProfile } from "~/models/user.server";
+import updateProfile from "~/domain/user/commands/updateProfile";
+import { inputFromForm, UnpackData, UnpackResult } from "domain-functions";
 
-interface ActionData {
-  errors?: {
-    name?: string;
-    email?: string;
-    phone?: string;
-  };
-}
+// interface ActionData {
+//   errors?: {
+//     name?: string;
+//     email?: string;
+//     phone?: string;
+//   };
+// }
 
 interface LoaderData {
   user: Awaited<ReturnType<typeof requireUser>>;
@@ -33,78 +34,84 @@ export const loader: LoaderFunction = async ({ request }) => {
   return json<LoaderData>({ user });
 };
 
-const schema = object({
-  name: string().required().min(2),
-  email: string().required().email(),
-  phone: string().test((value: string | undefined) => {
-    return value?.length ? parsePhone(value).isValid : true;
-  }),
-  watchlistEmail: boolean().default(false),
-  chatEmail: boolean().default(false),
-  usersEmail: boolean().default(false),
-  watchlistSms: boolean().default(false),
-  chatSms: boolean().default(false),
-  usersSms: boolean().default(false),
-  watchlistPush: boolean().default(false),
-  chatPush: boolean().default(false),
-  usersPush: boolean().default(false),
-});
+// const schema = object({
+//   name: string().required().min(2),
+//   email: string().required().email(),
+//   phone: string().test((value: string | undefined) => {
+//     return value?.length ? parsePhone(value).isValid : true;
+//   }),
+//   watchlistEmail: boolean().default(false),
+//   chatEmail: boolean().default(false),
+//   usersEmail: boolean().default(false),
+//   watchlistSms: boolean().default(false),
+//   chatSms: boolean().default(false),
+//   usersSms: boolean().default(false),
+//   watchlistPush: boolean().default(false),
+//   chatPush: boolean().default(false),
+//   usersPush: boolean().default(false),
+// });
 
-type Profile = InferType<typeof schema>;
+// type Profile = InferType<typeof schema>;
+
+type ActionData = UnpackResult<typeof updateProfile>;
 
 export const action: ActionFunction = async ({ request }) => {
-  const userId = await requireUserId(request);
-  const formData = await request.formData();
+  // const userId = await requireUserId(request);
+  // const formData = await request.formData();
 
-  const { data, errors } = await validateFormData<Profile>(formData, schema);
+  // const { data, errors } = await validateFormData<Profile>(formData, schema);
 
-  if (errors) {
-    return json<ActionData>({ errors }, { status: 400 });
-  }
+  // if (errors) {
+  //   return json<ActionData>({ errors }, { status: 400 });
+  // }
 
-  let {
-    name,
-    email,
-    phone,
-    watchlistEmail,
-    chatEmail,
-    usersEmail,
-    watchlistSms,
-    chatSms,
-    usersSms,
-    watchlistPush,
-    chatPush,
-    usersPush,
-  } = data;
+  // let {
+  //   name,
+  //   email,
+  //   phone,
+  //   watchlistEmail,
+  //   chatEmail,
+  //   usersEmail,
+  //   watchlistSms,
+  //   chatSms,
+  //   usersSms,
+  //   watchlistPush,
+  //   chatPush,
+  //   usersPush,
+  // } = data;
 
-  if (!phone) {
-    watchlistSms = false;
-    chatSms = false;
-    usersSms = false;
-  }
+  // if (!phone) {
+  //   watchlistSms = false;
+  //   chatSms = false;
+  //   usersSms = false;
+  // }
 
-  await updateProfile(
-    userId,
-    name,
-    email,
-    phone ? parsePhone(phone).phoneNumber : null,
-    watchlistEmail,
-    chatEmail,
-    usersEmail,
-    watchlistSms,
-    chatSms,
-    usersSms,
-    watchlistPush,
-    chatPush,
-    usersPush
-  );
+  // await updateProfile(
+  //   userId,
+  //   name,
+  //   email,
+  //   phone ? parsePhone(phone).phoneNumber : null,
+  //   watchlistEmail,
+  //   chatEmail,
+  //   usersEmail,
+  //   watchlistSms,
+  //   chatSms,
+  //   usersSms,
+  //   watchlistPush,
+  //   chatPush,
+  //   usersPush
+  // );
 
-  return json({});
+  const result = await updateProfile(await inputFromForm(request), {
+    id: await requireUserId(request),
+  });
+
+  return json<ActionData>(result, { status: result.success ? 200 : 400 });
 };
 
 export default function ProfilePage() {
   const { user } = useLoaderData<LoaderData>();
-  const actionData = useActionData() as ActionData;
+  const actionData = useActionData<ActionData>();
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
@@ -112,15 +119,15 @@ export default function ProfilePage() {
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   useEffect(() => {
-    setErrors(actionData?.errors);
+    setErrors(actionData?.inputErrors);
 
-    if (actionData?.errors?.name) {
-      nameRef.current?.focus();
-    } else if (actionData?.errors?.email) {
-      emailRef.current?.focus();
-    } else if (actionData?.errors?.phone) {
-      phoneRef.current?.focus();
-    }
+    // if (actionData?.inputErrors?.name) {
+    //   nameRef.current?.focus();
+    // } else if (actionData?.errors?.email) {
+    //   emailRef.current?.focus();
+    // } else if (actionData?.errors?.phone) {
+    //   phoneRef.current?.focus();
+    // }
   }, [actionData]);
 
   return (
@@ -128,6 +135,7 @@ export default function ProfilePage() {
       method="post"
       className="mx-auto max-w-5xl space-y-6 divide-y divide-gray-200 px-4 pb-4"
     >
+      <pre>{JSON.stringify(actionData, null, 2)}</pre>
       <div className="space-y-6 pt-8 sm:space-y-5 sm:pt-10">
         <div>
           <h3 className="text-lg font-medium leading-6 text-gray-900">

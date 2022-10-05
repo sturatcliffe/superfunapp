@@ -1,5 +1,5 @@
 import { ActionFunction, redirect } from "remix";
-import { setItemScore } from "~/models/item.server";
+import { setItemScore } from "~/domain/item.server";
 import { requireUserId } from "~/services/session.server";
 
 export const action: ActionFunction = async ({ request }) => {

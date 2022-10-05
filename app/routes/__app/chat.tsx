@@ -9,8 +9,8 @@ import { prisma } from "~/services/db.server";
 import { requireUserId } from "~/services/session.server";
 import { pusher } from "~/services/pusher.server";
 
-import { createNotification } from "~/models/notification.server";
-import { getUsers } from "~/models/user.server";
+import { createNotification } from "~/domain/notification.server";
+import { getUsers } from "~/domain/user.server";
 
 import Input from "~/components/Input";
 import Gravatar from "~/components/Gravatar";

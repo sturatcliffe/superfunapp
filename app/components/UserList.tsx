@@ -2,7 +2,7 @@ import { NavLink } from "remix";
 
 import { usePusher } from "~/context/PusherContext";
 
-import { getUsers } from "~/models/user.server";
+import { getUsers } from "~/domain/user.server";
 
 import Gravatar from "./Gravatar";
 

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useMatches, json } from "remix";
 import { SchemaOf } from "yup";
 
-import type { User } from "~/models/user.server";
+import type { User } from "~/domain/user.server";
 
 /**
  * This base hook is used in other hooks to quickly search for specific data
