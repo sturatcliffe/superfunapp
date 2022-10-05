@@ -1,12 +1,6 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import {
-  Form,
-  useLoaderData,
-  useNavigate,
-  useSearchParams,
-  useTransition,
-} from "remix";
+import { Form, useLoaderData, useNavigate, useTransition } from "remix";
 import { PlusIcon } from "@heroicons/react/outline";
 
 import Gravatar from "./Gravatar";
@@ -18,7 +12,6 @@ const AddToFriendsListModal = () => {
   const { title, users } = useLoaderData<LoaderData>();
   const transition = useTransition();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const submitting = transition.state === "submitting";
 

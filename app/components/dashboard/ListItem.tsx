@@ -1,7 +1,4 @@
-import { useState } from "react";
 import { EyeIcon, PlusIcon } from "@heroicons/react/outline";
-
-import AddToFriendsListModal from "~/components/AddToFriendsListModal";
 import { Link } from "remix";
 
 export default function ListItem({
@@ -15,8 +12,6 @@ export default function ListItem({
   url: string;
   image: string;
 }) {
-  const [open, setOpen] = useState(false);
-
   return (
     <li className="mb-4 px-4 md:w-1/2 xl:w-1/4">
       <div className="group relative overflow-hidden">
@@ -40,12 +35,6 @@ export default function ListItem({
           </a>
         </div>
       </div>
-      {/* <AddToFriendsListModal
-        open={open}
-        tt={tt}
-        title={title}
-        onClose={() => setOpen(false)}
-      /> */}
     </li>
   );
 }
