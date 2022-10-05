@@ -205,17 +205,26 @@ import { z } from "zod";
 
 import { prisma } from "~/services/db.server";
 
-const schema = z.object({
-  name: z.string(),
-  email: z.string().email(),
+export const schema = z.object({
+  name: z.string().min(1),
+  email: z.string().min(1).email(),
   phone: z.string().optional(),
+  watchlistEmail: z.boolean(),
+  chatEmail: z.boolean(),
+  usersEmail: z.boolean(),
+  watchlistSms: z.boolean(),
+  chatSms: z.boolean(),
+  usersSms: z.boolean(),
+  watchlistPush: z.boolean(),
+  chatPush: z.boolean(),
+  usersPush: z.boolean(),
 });
 
-const envSchema = z.object({
+export const envSchema = z.object({
   id: z.number().positive(),
 });
 
-const updateProfile = makeDomainFunction(
+export const mutation = makeDomainFunction(
   schema,
   envSchema
 )(async ({ name, email, phone }, { id }) =>
@@ -228,5 +237,3 @@ const updateProfile = makeDomainFunction(
     },
   })
 );
-
-export default updateProfile;
