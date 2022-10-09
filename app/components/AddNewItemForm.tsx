@@ -83,7 +83,7 @@ const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
               <LoadingSpinner className="absolute top-2 right-2 h-5 w-5 text-blue-500" />
             )}
             {results.length > 0 && (
-              <ul className="absolute left-0 right-0 mt-1 max-h-60 divide-y divide-dashed overflow-y-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+              <ul className="absolute left-0 right-0 z-10 mt-1 max-h-60 divide-y divide-dashed overflow-y-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
                 {results.map((item) => (
                   <li
                     key={item.url}
