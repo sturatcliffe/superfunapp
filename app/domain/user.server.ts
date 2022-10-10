@@ -19,9 +19,6 @@ export async function getUsers() {
 export async function getUserById(id: User["id"]) {
   return prisma.user.findUnique({
     where: { id },
-    include: {
-      preferences: true,
-    },
   });
 }
 

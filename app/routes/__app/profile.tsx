@@ -1,76 +1,27 @@
-import { NotificationEvent, NotificationMethod } from "@prisma/client";
+import { Popover } from "@headlessui/react";
+import { UnpackData } from "domain-functions";
 import { useState } from "react";
 import { ActionFunction, json, LoaderFunction, useLoaderData } from "remix";
 import { formAction } from "remix-forms";
-import { Popover } from "@headlessui/react";
 
-import { requireUser, requireUserId } from "~/services/session.server";
+import { requireUserId } from "~/services/session.server";
 
+import { getUserProfile } from "~/domain/user/queries";
 import { mutation, schema } from "~/domain/user/commands/updateProfile";
 
 import Button from "~/components/shared/Button";
 import Form from "~/components/shared/Form";
 
-interface LoaderData {
-  user: Awaited<ReturnType<typeof requireUser>>;
-}
+type LoaderData = { user: UnpackData<typeof getUserProfile> };
 
 export const loader: LoaderFunction = async ({ request }) => {
-  const { id, name, email, phone, preferences } = await requireUser(request);
-
-  return json({
-    user: {
-      id,
-      name,
-      email,
-      phone,
-      watchlistEmail: preferences.find(
-        (x) =>
-          x.event === NotificationEvent["Watchlist"] &&
-          x.method === NotificationMethod["Email"]
-      )?.enabled,
-      chatEmail: preferences.find(
-        (x) =>
-          x.event === NotificationEvent["Chat"] &&
-          x.method === NotificationMethod["Email"]
-      )?.enabled,
-      usersEmail: preferences.find(
-        (x) =>
-          x.event === NotificationEvent["Users"] &&
-          x.method === NotificationMethod["Email"]
-      )?.enabled,
-      watchlistSms: preferences.find(
-        (x) =>
-          x.event === NotificationEvent["Watchlist"] &&
-          x.method === NotificationMethod["SMS"]
-      )?.enabled,
-      chatSms: preferences.find(
-        (x) =>
-          x.event === NotificationEvent["Chat"] &&
-          x.method === NotificationMethod["SMS"]
-      )?.enabled,
-      usersSms: preferences.find(
-        (x) =>
-          x.event === NotificationEvent["Users"] &&
-          x.method === NotificationMethod["SMS"]
-      )?.enabled,
-      watchlistPush: preferences.find(
-        (x) =>
-          x.event === NotificationEvent["Watchlist"] &&
-          x.method === NotificationMethod["Push"]
-      )?.enabled,
-      chatPush: preferences.find(
-        (x) =>
-          x.event === NotificationEvent["Chat"] &&
-          x.method === NotificationMethod["Push"]
-      )?.enabled,
-      usersPush: preferences.find(
-        (x) =>
-          x.event === NotificationEvent["Users"] &&
-          x.method === NotificationMethod["Push"]
-      )?.enabled,
-    },
+  const result = await getUserProfile(null, {
+    id: await requireUserId(request),
   });
+
+  if (!result.success) return json({}, { status: 404 });
+
+  return json<LoaderData>({ user: result.data });
 };
 
 export const action: ActionFunction = async ({ request }) => {
