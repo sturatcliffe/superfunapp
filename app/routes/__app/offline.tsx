@@ -1,4 +1,4 @@
-const OfflinePage = () => {
+export default function OfflinePage() {
   return (
     <div className="flex h-full items-center justify-center">
       <div className="rounded border border-red-800 bg-red-200 p-4 text-red-800">
@@ -13,6 +13,4 @@ const OfflinePage = () => {
       </div>
     </div>
   );
-};
-
-export default OfflinePage;
+}
