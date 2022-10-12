@@ -102,7 +102,7 @@ export async function logout(request: Request) {
 export async function forgotPassword(
   request: Request,
   email: string,
-  otp: string
+  otp: number
 ) {
   const session = await getSession(request);
   session.set(RESET_PASSWORD_EMAIL_KEY, email);
