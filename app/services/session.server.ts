@@ -1,4 +1,4 @@
-import { createCookieSessionStorage, redirect } from "remix";
+import { createCookieSessionStorage, json, redirect } from "remix";
 import invariant from "tiny-invariant";
 
 import type { User } from "~/domain/user.server";
@@ -18,6 +18,7 @@ export const sessionStorage = createCookieSessionStorage({
   },
 });
 
+const ERROR_KEY = "error";
 const USER_SESSION_KEY = "userId";
 const RESET_PASSWORD_OTP_KEY = "resetPasswordOtp";
 const RESET_PASSWORD_EMAIL_KEY = "resetPasswordEmail";
@@ -121,40 +122,47 @@ export async function getResetPasswordEmail(request: Request) {
   return session.get(RESET_PASSWORD_EMAIL_KEY);
 }
 
-export async function validateOtp(
-  request: Request,
-  email: string,
-  otp: string
-) {
+export async function getEmailAndOtp(request: Request) {
   const session = await getSession(request);
 
-  if (
-    !session.has(RESET_PASSWORD_EMAIL_KEY) ||
-    !session.has(RESET_PASSWORD_OTP_KEY)
-  ) {
-    return false;
-  }
-
-  const sessionEmail = session.get(RESET_PASSWORD_EMAIL_KEY);
-  const sessionOtp = session.get(RESET_PASSWORD_OTP_KEY);
-
-  if (sessionEmail !== email || sessionOtp !== otp) {
-    return false;
-  }
-
-  return true;
+  return {
+    email: session.get(RESET_PASSWORD_EMAIL_KEY) as string | undefined,
+    otp: session.get(RESET_PASSWORD_OTP_KEY) as number | undefined,
+  };
 }
 
 export async function resetPasswordFailure(request: Request) {
   const session = await getSession(request);
   session.unset(RESET_PASSWORD_EMAIL_KEY);
   session.unset(RESET_PASSWORD_OTP_KEY);
-  session.flash("error", "This OTP has expired, please request a new one.");
+  session.flash(
+    ERROR_KEY,
+    "The code you entered has expired, please request a new one."
+  );
   return redirect("/forgot-password", {
     headers: {
       "Set-Cookie": await sessionStorage.commitSession(session, {
         maxAge: undefined,
       }),
+    },
+  });
+}
+
+export async function flashSessionError(request: Request, error: string) {
+  const session = await getSession(request);
+  session.flash(ERROR_KEY, error);
+}
+
+export async function getSessionError(request: Request) {
+  const session = await getSession(request);
+  return session.get(ERROR_KEY) as string | undefined;
+}
+
+export async function jsonCommitSession<T>(request: Request, data: T) {
+  const session = await getSession(request);
+  return json<T>(data, {
+    headers: {
+      "Set-Cookie": await sessionStorage.commitSession(session),
     },
   });
 }

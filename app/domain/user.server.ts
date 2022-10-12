@@ -249,19 +249,6 @@ export async function updateProfile(
   });
 }
 
-export async function updatePassword(id: User["id"], password: string) {
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  await prisma.password.update({
-    where: {
-      userId: id,
-    },
-    data: {
-      hash: hashedPassword,
-    },
-  });
-}
-
 export async function verifyLogin(
   email: User["email"],
   password: Password["hash"]
