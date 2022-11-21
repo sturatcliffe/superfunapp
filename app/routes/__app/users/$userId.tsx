@@ -27,8 +27,7 @@ import { sendSms } from "~/services/sms.server";
 import WatchList from "~/components/WatchList";
 import type { Fields } from "~/components/AddNewItemForm";
 import AddNewItemForm from "~/components/AddNewItemForm";
-import { searchImdb, scrapeImdbData } from "~/services/imdb.server";
-import type { SearchResult } from "~/services/imdb.server";
+import { retrieve, search } from "~/services/omdb.server";
 
 type LoaderData = {
   items: Awaited<ReturnType<typeof getWatchlistItems>>;
@@ -37,7 +36,7 @@ type LoaderData = {
 
 type ActionData = {
   query?: string;
-  results?: SearchResult[];
+  result?: Awaited<ReturnType<typeof search>>;
   errors?: Fields;
   deleted?: boolean;
 };
@@ -57,8 +56,8 @@ const handleSearch = async (formData: FormData) => {
     );
   }
 
-  const results = await searchImdb(q as string);
-  return json<ActionData>({ query: q, results });
+  const result = await search(q as string);
+  return json<ActionData>({ query: q, result });
 };
 
 const handleCreate = async (
@@ -67,39 +66,25 @@ const handleCreate = async (
   currentUser: User,
   baseUrl: string
 ) => {
-  const url = formData.get("url") as string | undefined;
+  const tt = formData.get("tt") as string | undefined;
 
-  if (
-    typeof url !== "string" ||
-    !url.startsWith("https://www.imdb.com/title/")
-  ) {
+  if (typeof tt !== "string" || !tt.startsWith("tt")) {
     return json<ActionData>(
-      { errors: { url: "You must enter a valid IMDB URL" } },
+      { errors: { url: "You must enter a valid IMDB ID" } },
       { status: 400 }
     );
   }
 
-  const { tt, title, description, image } = await scrapeImdbData(url);
+  const item = await retrieve(tt);
 
-  if (
-    typeof tt !== "string" ||
-    !tt.startsWith("tt") ||
-    typeof title !== "string" ||
-    typeof description !== "string" ||
-    typeof image !== "string"
-  ) {
-    return json<ActionData>(
-      { errors: { url: "Failed to scrape data from that URL." } },
-      { status: 400 }
-    );
-  }
+  const { Title, Plot, Poster } = item;
 
   await upsertItem({
     tt,
-    title,
-    description,
-    url,
-    image,
+    title: Title,
+    description: Plot,
+    url: `https://imdb.com/title/${tt}`,
+    image: Poster,
     userId,
     createdById: currentUser.id,
   });
@@ -267,7 +252,7 @@ export default function UserDetailsPage() {
       <AddNewItemForm
         ref={inputRef}
         query={actionData?.query}
-        results={actionData?.results}
+        result={actionData?.result}
         errors={actionData?.errors}
       />
       <WatchList items={items} currentUserId={userId} />

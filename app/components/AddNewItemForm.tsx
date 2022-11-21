@@ -6,7 +6,7 @@ import debounce from "lodash.debounce";
 import { SEARCH_ACTION, CREATE_ACTION } from "../routes/__app/users/$userId";
 import Input from "./Input";
 
-import type { SearchResult } from "~/services/imdb.server";
+import type { OmdbSearchResponse } from "~/services/omdb.server";
 import LoadingSpinner from "./LoadingSpinner";
 
 export interface Fields {
@@ -15,16 +15,18 @@ export interface Fields {
 
 interface Props {
   query?: string;
-  results?: SearchResult[];
+  result?: OmdbSearchResponse;
   errors?: Fields;
 }
 
 const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
-  ({ query, results: resultsProp, errors }, ref) => {
+  ({ query, result: resultProp, errors }, ref) => {
     const submit = useSubmit();
     const transition = useTransition();
 
-    const [results, setResults] = useState<SearchResult[]>([]);
+    const [result, setResult] = useState<OmdbSearchResponse | undefined>(
+      resultProp
+    );
 
     const formRef = useRef<HTMLFormElement | null>(null);
 
@@ -35,7 +37,7 @@ const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
     useEffect(() => {
       const handleClickAway = (e: any) => {
         if (formRef.current && !formRef.current.contains(e.target)) {
-          setResults([]);
+          setResult(undefined);
         }
       };
 
@@ -47,10 +49,8 @@ const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
     }, []);
 
     useEffect(() => {
-      if (resultsProp && resultsProp.length > 0) {
-        setResults(resultsProp);
-      }
-    }, [resultsProp]);
+      setResult(resultProp);
+    }, [resultProp]);
 
     const search = debounce((query: string) => {
       if (query.length > 0) {
@@ -60,7 +60,7 @@ const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
 
         submit(formData, { method: "post" });
       } else {
-        setResults([]);
+        setResult(undefined);
       }
     }, 500);
 
@@ -82,28 +82,41 @@ const AddNewItemForm = forwardRef<HTMLInputElement, Props>(
             {isSubmitting && (
               <LoadingSpinner className="absolute top-2 right-2 h-5 w-5 text-blue-500" />
             )}
-            {results.length > 0 && (
+            {result && result.Search.length && (
               <ul className="absolute left-0 right-0 z-10 mt-1 max-h-60 divide-y divide-dashed overflow-y-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-                {results.map((item) => (
+                {result.Search.map((item) => (
                   <li
-                    key={item.url}
+                    key={item.imdbID}
                     className="flex items-center justify-between p-2 hover:bg-blue-100"
                   >
                     <a
                       target="_blank"
                       rel="noreferrer"
-                      href={item.url}
+                      href={`https://imdb.com/title/${item.imdbID}`}
                       className="flex items-center"
                     >
-                      <img src={item.image} alt={item.title} className="mr-2" />
-                      {item.title}
+                      {item.Poster !== "N/A" && (
+                        <img
+                          src={item.Poster}
+                          alt={item.Title}
+                          className="mr-2 w-24"
+                        />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-lg font-semibold">
+                          {item.Title}
+                        </span>
+                        <span className="text-sm capitalize">
+                          {item.Type} ({item.Year})
+                        </span>
+                      </div>
                     </a>
                     <button
                       onClick={(e) => {
                         e.preventDefault();
                         const formData = new FormData();
                         formData.set("action", CREATE_ACTION);
-                        formData.set("url", item.url);
+                        formData.set("tt", item.imdbID);
 
                         submit(formData, { method: "post" });
                       }}
