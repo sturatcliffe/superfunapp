@@ -29,7 +29,7 @@ const retrieveResponseSchema = z.object({
   imdbVotes: z.string(),
   imdbID: z.string(),
   Type: z.string(),
-  totalSeasons: z.string(),
+  totalSeasons: z.string().optional(),
   Response: z.string().transform(Boolean),
 });
 
@@ -56,17 +56,20 @@ export const retrieve = async (tt: string) => {
 };
 
 const searchResponseSchema = z.object({
-  Search: z.array(
-    z.object({
-      Title: z.string(),
-      Year: z.string(),
-      imdbID: z.string(),
-      Type: z.string(),
-      Poster: z.string(),
-    })
-  ),
-  totalResults: z.string().transform(Number),
+  Search: z
+    .array(
+      z.object({
+        Title: z.string(),
+        Year: z.string(),
+        imdbID: z.string(),
+        Type: z.string(),
+        Poster: z.string(),
+      })
+    )
+    .optional(),
+  totalResults: z.string().optional().transform(Number),
   Response: z.string().transform(Boolean),
+  Error: z.string().optional(),
 });
 
 export type OmdbSearchResponse = z.infer<typeof searchResponseSchema>;
@@ -86,7 +89,7 @@ export const search = async (q: string) => {
 
   const { data } = parsed;
 
-  data.Search = data.Search.filter((x) => x.Type !== "game");
+  if (data.Search) data.Search = data.Search.filter((x) => x.Type !== "game");
 
   return data;
 };
