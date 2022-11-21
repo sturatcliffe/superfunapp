@@ -102,7 +102,7 @@ const handleCreate = async (
         <p>Hello${otherUser.name ? ` ${otherUser.name}` : ""},</p>
         <p>${
           currentUser.name ?? currentUser.email
-        } has just added <b>${title}</b> to your watchlist!</p>
+        } has just added <b>${Title}</b> to your watchlist!</p>
         <p>Check it out <a href="${baseUrl}/users/${userId}">here</a>.</p>
         <p>Toodles!</p>
       `;
